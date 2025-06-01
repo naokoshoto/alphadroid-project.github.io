@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AlphaDroid | Coming Soon</title>
+  <link rel="shortcut icon" href="images/fav.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Material+Symbols+Rounded" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6750A4;
+      --on-primary: #413e3e;
+      --background: #101735;
+      --on-background: #1D1B20;
+      --elevation: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      color: var(--on-background);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      background-image: url('images/milk.jpg');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(48, 47, 47, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      padding: 40px;
+      border-radius: 24px;
+      background: rgb(55, 50, 50);
+      box-shadow: var(--elevation);
+      color: aliceblue  ;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 30px;
+    }
+
+    .material-symbols-rounded {
+      font-size: 48px;
+      color: var(--primary);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="content">
+    <span class="material-symbols-rounded">construction</span>
+    <h1>We're Building Something Awesome!</h1>
+    <p>This website is currently under construction.<br>Please check back soon.</p>
+    <a href="index.html" class="download-button">
+                    <span class="material-symbols-rounded">arrow_back</span>
+            </a>
+  </div>
+</body>
+</html>

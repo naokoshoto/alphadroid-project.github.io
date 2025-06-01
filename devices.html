@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaDroid ROM | Supported Devices</title>
+    <link rel="shortcut icon" href="images/fav.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <style>
+        :root {
+            /* Material You dynamic color system */
+            --primary: #6750A4;
+            --on-primary: #FFFFFF;
+            --primary-container: #EADDFF;
+            --on-primary-container: #21005D;
+            --secondary: #625B71;
+            --on-secondary: #FFFFFF;
+            --secondary-container: #E8DEF8;
+            --on-secondary-container: #1D192B;
+            --tertiary: #7D5260;
+            --on-tertiary: #FFFFFF;
+            --surface: #FEF7FF;
+            --on-surface: #1D1B20;
+            --surface-variant: #E7E0EC;
+            --on-surface-variant: #49454F;
+            --outline: #79747E;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            
+            --animation-speed: 0.4s;
+            --border-radius: 24px;
+            --elevation: 0 3px 6px rgba(0,0,0,0.1);
+            --hover-elevation: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #D0BCFF;
+                --on-primary: #381E72;
+                --primary-container: #4F378B;
+                --on-primary-container: #EADDFF;
+                --secondary: #CCC2DC;
+                --on-secondary: #332D41;
+                --secondary-container: #4A4458;
+                --on-secondary-container: #E8DEF8;
+                --tertiary: #EFB8C8;
+                --on-tertiary: #492532;
+                --surface: #141218;
+                --on-surface: #E6E0E9;
+                --surface-variant: #49454F;
+                --on-surface-variant: #CAC4D0;
+                --outline: #938F99;
+                --success: #66BB6A;
+                --warning: #FFCA28;
+                
+                --elevation: 0 6px 12px rgba(0,0,0,0.3);
+                --hover-elevation: 0 12px 24px rgba(0,0,0,0.4);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background-color: rgba(var(--surface-rgb), 0.8);
+            border-bottom: 1px solid var(--surface-variant);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .logo-icon img.logo-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 24px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--on-surface);
+            font-weight: 500;
+            position: relative;
+            padding: 8px 4px;
+            transition: color var(--animation-speed);
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: width var(--animation-speed);
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background-color: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--animation-speed);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--elevation);
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            background-color: var(--primary-container);
+            color: var(--on-primary-container);
+            transform: translateY(-2px);
+            box-shadow: var(--hover-elevation);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 140px 0 60px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            color: var(--on-surface-variant);
+        }
+
+        /* Search Section */
+        .search-section {
+            background-color: var(--primary-container);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 24px;
+            border-radius: 100px;
+            border: none;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            font-size: 1.1rem;
+            box-shadow: var(--elevation);
+        }
+
+        .search-input:focus {
+            outline: 2px solid var(--primary);
+        }
+
+        .device-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            color: var(--on-primary-container);
+            font-weight: 500;
+        }
+
+        .stat-card {
+            background-color: var(--surface);
+            padding: 15px 30px;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Device Grid */
+        .devices-container {
+            margin: 60px 0;
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .device-card {
+            background-color: var(--surface);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            transition: all var(--animation-speed);
+            box-shadow: var(--elevation);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--surface-variant);
+        }
+
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-elevation);
+            border-color: var(--primary);
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .device-codename {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        .device-model {
+            font-weight: 500;
+            color: var(--on-surface-variant);
+            margin-bottom: 5px;
+        }
+
+        .device-info {
+            margin-bottom: 20px;
+        }
+
+        .device-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .android-versions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .android-badge {
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .android-14 {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: var(--success);
+        }
+
+        .android-15 {
+            background-color: rgba(41, 121, 255, 0.15);
+            color: #2979FF;
+        }
+
+        .maintainer {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            padding-top: 15px;
+            border-top: 1px solid var(--surface-variant);
+        }
+
+        .maintainer a {
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .maintainer a:hover {
+            text-decoration: underline;
+        }
+
+        .download-button {
+            background-color: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 100px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--animation-speed);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .download-button:hover {
+            background-color: var(--primary-container);
+            color: var(--on-primary-container);
+            transform: translateY(-2px);
+        }
+
+        .sourceforge-logo {
+            width: 120px;
+            margin-bottom: 10px;
+        }
+
+        .warn{
+            background-color: rgba(255, 0, 0, 0.893);
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--on-surface-variant);
+            font-size: 1.1rem;
+        }
+
+        .manufacturer-section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .manufacturer-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--surface-variant);
+            padding: 60px 0 30px;
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-column h3 {
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            text-decoration: none;
+            color: var(--on-surface-variant);
+            transition: color var(--animation-speed);
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--outline);
+            color: var(--on-surface-variant);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .device-stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            nav ul {
+                display: none;
+            }
+        }
+
+        .me{
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <a href="index.html" class="logo">
+        <div class="logo-icon">
+            <img src="images/logo.jpg" alt="logo" class="logo-img" />
+        </div>
+        <span>AlphaDroid</span>
+        </a>
+
+            <nav>
+                <ul>
+                    <li><a href="#google">Google</a></li>
+                    <li><a href="#oneplus">OnePlus</a></li>
+                    <li><a href="#xiaomi">Xiaomi</a></li>
+                    <li><a href="#others">Others</a></li>
+                </ul>
+            </nav>
+            <a href="index.html" class="download-button">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                    Back to Home
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h4 class="warn">!!!Your warranty will be void.!!! <br>
+                !!!We am not responsible for anything that may happen to your phone by installing any custom ROMs and/or kernels.!!! <br>
+                !!!You do it at your own risk and take the responsibility upon yourself and you are not to blame us and its respected developers.!!!</h4>
+            <h1>Supported Devices</h1>
+            <p>Find your device and download the latest AlphaDroid ROM directly from SourceForge</p>
+            <div class="search-box">
+                <input type="text" class="search-input" id="deviceSearch" placeholder="Search devices (e.g. rubyx, marble, redmi note 12 pro 5g)">
+                <button class="download-button" id="clearSearch">
+                    <span class="material-symbols-rounded">close</span>
+                    Clear
+                </button>
+            </div>
+            <div class="device-stats">
+                <div class="stat-card">
+                    <span class="stat-number">75</span>
+                    <span>Devices</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">2,730</span>
+                    <span>Downloads</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">3.2</span>
+                    <span>Latest Version</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Google Devices -->
+    <section class="manufacturer-section" id="google">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="manufacturer-icon">
+                    <span class="material-symbols-rounded">android</span>
+                </span>
+                Google Devices
+            </h2>
+            <div class="devices-grid">
+                <!-- Google devices will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- OnePlus Devices -->
+    <section class="manufacturer-section" id="oneplus">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="manufacturer-icon">
+                    <span class="material-symbols-rounded">settings</span>
+                </span>
+                OnePlus Devices
+            </h2>
+            <div class="devices-grid">
+                <!-- OnePlus devices will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Xiaomi Devices -->
+    <section class="manufacturer-section" id="xiaomi">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="manufacturer-icon">
+                    <span class="material-symbols-rounded">smartphone</span>
+                </span>
+                Xiaomi Devices
+            </h2>
+            <div class="devices-grid">
+                <!-- Xiaomi devices will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Other Devices -->
+    <section class="manufacturer-section" id="others">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="manufacturer-icon">
+                    <span class="material-symbols-rounded">devices</span>
+                </span>
+                Other Devices
+            </h2>
+            <div class="devices-grid">
+                <!-- Other devices will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>AlphaDroid ROM</h3>
+                    <p>The next-generation Android experience with Material You design, enhanced performance, and unparalleled customization.</p>
+                </div>
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">Installation Guide</a></li>
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">FAQ</a></li>
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">Bug Tracker</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Community</h3>
+                    <ul class="footer-links">
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">Telegram Group</a></li>
+                        <li><a target="_blank" href="https://t.me/alphadroid_releases">Releases</a></li>
+                        <li><a target="_blank" href="https://github.com/alphadroid-project" target="_blank">GitHub</a></li>
+                        <li><a target="_blank" href="https://sourceforge.net/projects/alphadroid-project/" target="_blank">SourceForge</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2025 AlphaDroid Project. This is an open-source project not affiliated with Google or Android. All trademarks are the property of their respective owners. <br> Site made by <a class="me" href="https://t.me/Pacuka">Pacuka</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Device data with Android version support
+        const devices = [
+            // Google Devices
+            { 
+                codename: "oriole", 
+                model: "Pixel 6", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "iczynbuilds", link: "https://t.me/iczynbuilds" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "bluejay", 
+                model: "Pixel 6a", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "iczynbuilds", link: "https://t.me/iczynbuilds" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "raven", 
+                model: "Pixel 6 Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "iczynbuilds", link: "https://t.me/iczynbuilds" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "shiba", 
+                model: "Pixel 8", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "p8seriesromextravaganza", link: "https://t.me/p8seriesromextravaganza" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "akita", 
+                model: "Pixel 8a", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "p8seriesromextravaganza", link: "https://t.me/p8seriesromextravaganza" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "husky", 
+                model: "Pixel 8 Pro", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "p8seriesromextravaganza", link: "https://t.me/p8seriesromextravaganza" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "tokay", 
+                model: "Pixel 9", 
+                androidVersions: ["A15"], 
+                maintainer: { name: "caimito_roms", link: "https://t.me/caimito_roms" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "caiman", 
+                model: "Pixel 9 Pro", 
+                androidVersions: ["A15"], 
+                maintainer: { name: "caimito_roms", link: "https://t.me/caimito_roms" },
+                manufacturer: "google"
+            },
+            { 
+                codename: "komodo", 
+                model: "Pixel 9 Pro XL", 
+                androidVersions: ["A15"], 
+                maintainer: { name: "caimito_roms", link: "https://t.me/caimito_roms" },
+                manufacturer: "google"
+            },
+            
+            // OnePlus Devices
+            { 
+                codename: "instantnoodle", 
+                model: "OnePlus 8", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "zahidsromfactory", link: "https://t.me/zahidsromfactory" },
+                manufacturer: "oneplus"
+            },
+            { 
+                codename: "instantnoodlep", 
+                model: "OnePlus 8 Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "zahidsromfactory", link: "https://t.me/zahidsromfactory" },
+                manufacturer: "oneplus"
+            },
+            { 
+                codename: "kebab", 
+                model: "OnePlus 8T", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "zahidsromfactory", link: "https://t.me/zahidsromfactory" },
+                manufacturer: "oneplus"
+            },
+            { 
+                codename: "lemonadep", 
+                model: "OnePlus 9 Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "JYR_RC_lemonadep", link: "https://t.me/JYR_RC_lemonadep" },
+                manufacturer: "oneplus"
+            },
+            { 
+                codename: "aston", 
+                model: "OnePlus Ace 3 | 12R", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "alphadroid_chat", link: "https://t.me/alphadroid_chat" },
+                manufacturer: "oneplus"
+            },
+            
+            // Other Devices
+            { 
+                codename: "spacewar", 
+                model: "Nothing Phone 1", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "zizzynp1roms", link: "https://t.me/zizzynp1roms" },
+                manufacturer: "others"
+            },
+            { 
+                codename: "bitra", 
+                model: "Realme GT Neo2", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "Zeus_Projekts_Dis", link: "https://t.me/Zeus_Projekts_Dis" },
+                manufacturer: "others"
+            },
+            
+            // Xiaomi Devices
+            { 
+                codename: "raphael", 
+                model: "K20 Pro / Mi 9T Pro", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "boolx_kehed", link: "https://t.me/boolx_kehed" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "apollo", 
+                model: "Mi 10T/Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "OzansCave", link: "https://t.me/OzansCave" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "venus", 
+                model: "Mi 11", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "romdumpvenus", link: "https://t.me/romdumpvenus" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "vili", 
+                model: "Mi 11T Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "Xiaomi11TPro_Official", link: "https://t.me/Xiaomi11TPro_Official" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "grus", 
+                model: "Mi 9 SE", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "aexarrowgrus", link: "https://t.me/aexarrowgrus" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "davinci", 
+                model: "Mi 9 T", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "alphadroid_davinci", link: "https://t.me/alphadroid_davinci" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "alioth", 
+                model: "Poco F3/Redmi k40/Xiaomi Mi 11X", 
+                androidVersions: ["A15"], 
+                maintainer: { name: "boolx_kehed", link: "https://t.me/boolx_kehed" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "marble", 
+                model: "Poco F5/Redmi Note 12 Turbo", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "JYR_RC_Builds_Marble", link: "https://t.me/JYR_RC_Builds_Marble" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "peridot", 
+                model: "Poco F6/Redmi Turbo 3", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "TopiATVOfficial", link: "https://t.me/TopiATVOfficial" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "surya", 
+                model: "Poco X3 NFC", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "POCOX3_SG", link: "https://t.me/POCOX3_SG" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "veux", 
+                model: "Poco X4 Pro 5G/Redmi Note 11(E) Pro", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "TopiATVOfficial", link: "https://t.me/TopiATVOfficial" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "stone", 
+                model: "Poco X5 5G/Redmi Note 12 5G", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "moonstone_sunstone", link: "https://t.me/moonstone_sunstone" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "rova", 
+                model: "Redmi 4a/5a", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "maxx459_mybuilds_discussion", link: "https://t.me/maxx459_mybuilds_discussion" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "mido", 
+                model: "Redmi Note 4", 
+                androidVersions: ["A15"], 
+                maintainer: { name: "mi11screenshots", link: "https://t.me/mi11screenshots" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "violet", 
+                model: "Redmi Note 7 Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "optoprjkt", link: "https://t.me/optoprjkt" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "ginkgo", 
+                model: "Redmi Note 8/8T", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "shawkbuilddiscussion", link: "https://t.me/shawkbuilddiscussion" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "miatoll", 
+                model: "Redmi Note 9s/Pro/Pro Max/Poco M2 Pro", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "dsidesupport", link: "https://t.me/dsidesupport" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "camellia", 
+                model: "RN10 5G/10T/11SE/M3 Pro", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "naokoshoto_discuss", link: "https://t.me/naokoshoto_discuss" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "sunny", 
+                model: "Redmi Note 10", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "alphadroid_sunny", link: "https://t.me/alphadroid_sunny" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "sweet", 
+                model: "Redmi Note 10 Pro", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "RoyalOSsupport", link: "https://t.me/RoyalOSsupport" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "topaz", 
+                model: "Redmi Note 12 4G", 
+                androidVersions: ["A14"], 
+                maintainer: { name: "fatssprjktchat", link: "https://t.me/fatssprjktchat" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "rubyx", 
+                model: "Redmi Note 12 Pro(+) 5G", 
+                androidVersions: ["A15"], 
+                maintainer: { name: "YagizAOSP", link: "https://t.me/YagizAOSP" },
+                manufacturer: "xiaomi"
+            },
+            { 
+                codename: "garnet", 
+                model: "Redmi Note 13 Pro 5G | Poco X6 5G", 
+                androidVersions: ["A14", "A15"], 
+                maintainer: { name: "garnet_JYRRC_builds", link: "https://t.me/garnet_JYRRC_builds" },
+                manufacturer: "xiaomi"
+            }
+        ];
+
+        // Populate device grids
+        const deviceSearch = document.getElementById('deviceSearch');
+        const clearSearch = document.getElementById('clearSearch');
+        const googleGrid = document.querySelector('#google .devices-grid');
+        const oneplusGrid = document.querySelector('#oneplus .devices-grid');
+        const xiaomiGrid = document.querySelector('#xiaomi .devices-grid');
+        const othersGrid = document.querySelector('#others .devices-grid');
+        
+        function renderDevices() {
+            googleGrid.innerHTML = '';
+            oneplusGrid.innerHTML = '';
+            xiaomiGrid.innerHTML = '';
+            othersGrid.innerHTML = '';
+            
+            const searchTerm = deviceSearch.value.toLowerCase().trim();
+            
+            const filteredDevices = searchTerm ? 
+                devices.filter(device => 
+                    device.codename.toLowerCase().includes(searchTerm) || 
+                    device.model.toLowerCase().includes(searchTerm)
+                ) : 
+                devices;
+            
+            if (filteredDevices.length === 0) {
+                googleGrid.innerHTML = '<div class="no-results">No devices found. Try a different search term.</div>';
+                return;
+            }
+            
+            filteredDevices.forEach(device => {
+                const card = document.createElement('div');
+                card.className = 'device-card';
+                
+                card.innerHTML = `
+                    <div class="device-header">
+                        <div class="device-codename">${device.codename}</div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-model">${device.model}</div>
+                        <div class="android-versions">
+                            ${device.androidVersions.map(version => `
+                                <div class="android-badge android-${version.slice(1)}">
+                                    <span class="material-symbols-rounded">check</span>
+                                    ${version}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="maintainer">
+                            Maintainer: 
+                            <a href="${device.maintainer.link}" target="_blank">
+                                <span class="material-symbols-rounded">link</span>
+                                ${device.maintainer.name}
+                            </a>
+                        </div>
+                    </div>
+                    <a href="https://sourceforge.net/projects/alphadroid-project/files/${device.codename}/" target="_blank" class="download-button">
+                        <span class="material-symbols-rounded">download</span>
+                        Download on SourceForge
+                    </a>
+                `;
+                
+                if (device.manufacturer === "google") {
+                    googleGrid.appendChild(card);
+                } else if (device.manufacturer === "oneplus") {
+                    oneplusGrid.appendChild(card);
+                } else if (device.manufacturer === "xiaomi") {
+                    xiaomiGrid.appendChild(card);
+                } else {
+                    othersGrid.appendChild(card);
+                }
+            });
+        }
+        
+        // Initial render
+        renderDevices();
+        
+        // Search functionality
+        deviceSearch.addEventListener('input', renderDevices);
+        
+        // Clear search
+        clearSearch.addEventListener('click', function() {
+            deviceSearch.value = '';
+            renderDevices();
+        });
+        
+        // Dynamic color update
+        document.addEventListener('DOMContentLoaded', function() {
+            const colors = ['#6750A4', '#006A6A', '#7D5260', '#006C84', '#635D78'];
+            let currentColorIndex = 0;
+            
+            function updateColors() {
+                document.documentElement.style.setProperty('--primary', colors[currentColorIndex]);
+                
+                currentColorIndex = (currentColorIndex + 1) % colors.length;
+            }
+            
+            // Change colors every 10 seconds for demo purposes
+            setInterval(updateColors, 10000);
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
