@@ -211,6 +211,63 @@ async function loadDevices(limit = 0) {
     container.innerHTML = '';
     container.appendChild(loadingEl);
 
+    // Helper to normalize different JSON shapes (data.response[] vs flat)
+    function normalizeEntry(res) {
+        // res may be { name, data: { response: [ { ... } ] }, rawUrl, lastModified }
+        // or already a simple device object
+        if (!res) return { rawName: '' };
+        const rawName = (res.name || '').replace(/\.json$/i, '');
+        if (res.data && Array.isArray(res.data.response) && res.data.response.length > 0) {
+            const d = res.data.response[0];
+            return Object.assign({ rawName, raw: res }, d);
+        }
+        if (res.data && typeof res.data === 'object') {
+            return Object.assign({ rawName, raw: res }, res.data);
+        }
+        // fallback: res itself could be the device object
+        return Object.assign({ rawName, raw: res }, res);
+    }
+
+    // New helper: determine the best update timestamp (ms) for an entry
+    function getUpdatedTime(entry) {
+        if (!entry) return 0;
+        // Prefer explicit timestamp fields in various shapes
+        try {
+            // If entry.data is the wrapper with response[] (from data/devices.json)
+            const data = entry.data || (entry.raw && entry.raw.data) || null;
+            if (data) {
+                const resp = Array.isArray(data.response) ? data.response[0] : data;
+                if (resp && resp.timestamp) {
+                    const ts = Number(resp.timestamp);
+                    if (!Number.isNaN(ts) && ts > 0) return ts * 1000;
+                }
+                if (data.timestamp) {
+                    const ts2 = Number(data.timestamp);
+                    if (!Number.isNaN(ts2) && ts2 > 0) return ts2 * 1000;
+                }
+            }
+
+            // Some fetch results include lastModified header stored on the wrapper
+            if (entry.lastModified) {
+                const t = Date.parse(entry.lastModified);
+                if (!Number.isNaN(t)) return t;
+            }
+
+            // If response objects contain a 'timestamp' at top-level
+            if (entry.timestamp) {
+                const t2 = Number(entry.timestamp);
+                if (!Number.isNaN(t2) && t2 > 0) return t2 * 1000;
+            }
+
+            // If version is a date-like string, try to parse it
+            const maybe = entry.version || (entry.data && entry.data.version) || '';
+            if (maybe && !Number.isNaN(Date.parse(maybe))) return Date.parse(maybe);
+        } catch (e) {
+            // ignore parse errors
+        }
+        return 0;
+    }
+
     // Common render function for all data sources
     function renderDevices(devices) {
         container.innerHTML = '';
@@ -218,32 +275,124 @@ async function loadDevices(limit = 0) {
         grid.className = 'grid responsive medium-space'; // Add responsive grid with medium spacing
         container.appendChild(grid);
 
+        // Keep raw list for search/filter
+        window.__allDevicesRaw = devices.slice();
+
+        // Brand color mapping and helpers for OEM chip styling
+        const _brandColors = {
+            xiaomi: '#FF6900',
+            google: '#4285F4',
+            pixel: '#4285F4',
+            oneplus: '#EB0029',
+            nothing: '#000000',
+            samsung: '#1428A0',
+            motorola: '#E60012',
+            huawei: '#D70015',
+            oppo: '#00B388',
+            vivo: '#1E90FF',
+            realme: '#F3D04E',
+            sony: '#00A3E0',
+            lg: '#A50034',
+            nokia: '#124191',
+            asus: '#005BAC'
+        };
+
+        function getBrandColor(name) {
+            if (!name) return null;
+            const v = String(name).toLowerCase().trim();
+            // direct key
+            if (_brandColors[v]) return _brandColors[v];
+            // try contains
+            for (const k of Object.keys(_brandColors)) {
+                if (v.indexOf(k) !== -1) return _brandColors[k];
+            }
+            return null;
+        }
+
+        function getTextColor(hex) {
+            if (!hex) return 'inherit';
+            // convert #RRGGBB to rgb
+            const h = hex.replace('#', '');
+            if (h.length !== 6) return 'white';
+            const r = parseInt(h.slice(0,2), 16);
+            const g = parseInt(h.slice(2,4), 16);
+            const b = parseInt(h.slice(4,6), 16);
+            // Perceived luminance
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            return lum > 186 ? 'black' : 'white';
+        }
+
         devices.forEach(res => {
-            const d = res.data || {};
-            const codename = d.codename || d.device || d.id || (res.name || '').replace(/\.json$/i, '');
-            const fullname = d.name || d.model || d.device_name || codename;
-            // show latestVersion and maintainer instead of status/official
-            const latestRaw = d.latestVersion || res.lastModified || d.version || '';
-            const latestDisplay = latestRaw ? (isNaN(Date.parse(latestRaw)) ? String(latestRaw) : new Date(latestRaw).toISOString().split('T')[0]) : 'Unknown';
-            const maint = d.maintainer || {};
-            const maintName = maint.name || maint.username || maint.maintainer || '';
-            const maintUrl = maint.url || maint.website || '';
+            const d = normalizeEntry(res);
+            const codename = (d.codename || d.device || d.id || d.rawName || '').toString();
+            const fullname = d.device || d.name || d.model || codename;
+
+            // prefer numeric timestamp -> ISO date; otherwise use version/lastModified
+            let latestDisplay = 'Unknown';
+            if (d.timestamp) {
+                try {
+                    const ts = Number(d.timestamp);
+                    if (!Number.isNaN(ts) && ts > 0) latestDisplay = new Date(ts * 1000).toISOString().split('T')[0];
+                } catch (e) { /* ignore */ }
+            }
+            if (latestDisplay === 'Unknown') {
+                const raw = d.latestVersion || (res && res.lastModified) || d.version || d.release || '';
+                if (raw) latestDisplay = isNaN(Date.parse(raw)) ? String(raw) : new Date(raw).toISOString().split('T')[0];
+            }
+
+            // maintainer can be a string or object; build a simple display
+            let maintName = '';
+            let maintUrl = '';
+            if (typeof d.maintainer === 'string') {
+                maintName = d.maintainer;
+                // try to surface telegram/paypal/forum if present on parent
+                maintUrl = d.telegram || d.paypal || d.forum || '';
+            } else if (d.maintainer && typeof d.maintainer === 'object') {
+                maintName = d.maintainer.name || d.maintainer.username || d.maintainer.maintainer || '';
+                maintUrl = d.maintainer.url || d.maintainer.website || '';
+            }
             const maintHtml = maintUrl ? `<a href="${escapeAttr(maintUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(maintName || maintUrl)}</a>` : escapeHtml(maintName || 'Unknown');
-            const infoLink = `https://github.com/AlphaDroid-devices/OTA/blob/master/${d.codename || codename}.json`;
+
+            const infoLink = (res.rawUrl || (d.raw && d.raw.rawUrl) || `https://raw.githubusercontent.com/AlphaDroid-devices/OTA/master/${codename}.json`);
+
+            // compute chip values
+            const oemVal = (d.oem || d.vendor || d.brand || '').toString();
+            const maintText = (typeof maintName === 'string' && maintName) ? maintName : (d.maintainer && typeof d.maintainer === 'string' ? d.maintainer : 'Unknown');
+
+            const oemColor = getBrandColor(oemVal);
+            const oemTextColor = getTextColor(oemColor);
+            const oemStyle = oemColor ? ('style="background:' + oemColor + '; color:' + oemTextColor + '; border-color: ' + oemColor + ';"') : '';
+            const imageUrl = d.image || `images/devices/${codename}.webp`;
 
             const card = document.createElement('article');
             card.className = 's12 m6 l4 padding center-align'; // Responsive columns: 1 on small, 2 on medium, 3 on large screens
+            card.setAttribute('data-codename', codename.toLowerCase());
+            card.setAttribute('data-oem', (oemVal || '').toLowerCase());
+            card.setAttribute('data-model', (fullname || '').toLowerCase());
             card.innerHTML = `
-                <div class="large-padding relative" style="min-height: 200px">
-                    <i class="extra-large" aria-hidden="true">smartphone</i>
-                    <h5 class="no-margin">${escapeHtml(fullname)}</h5>
-                    <div class="small-margin">Latest: ${escapeHtml(latestDisplay)}</div>
-                    <div class="small-margin">Maintainer: ${maintHtml}</div>
-                    <div class="absolute bottom right small-margin">
-                        <button class="border round" onclick="showDeviceDetails('${escapeAttr(d.codename || codename)}')">
-                            <i>info</i>
-                            <span>Details</span>
+                <div class="small-padding relative" style="aspect-ratio: 3 / 4; width: 100%;">
+                    <div style="display:flex; justify-content:center; align-items:flex-start; padding-top:8px;">
+                        <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(fullname)}" style="width:72px;height:72px;object-fit:contain;" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'extra-large',textContent:'smartphone'}));">
+                    </div>
+                    <div class="absolute bottom left" style="width: 100%; text-align:left; display:flex; flex-direction:column; align-items:flex-start;">
+                        <h5 class="small-margin" style="margin-left:4px;">${escapeHtml(fullname)}</h5>
+                        <button class="chip fill round" style="margin-left:4px;">
+                            <i>today</i>
+                            <span>${escapeHtml(latestDisplay)}</span>
                         </button>
+                        <div class="small-margin" style="width:100%;">
+                            <nav class="group connected" style="justify-content:flex-start;">
+                                <button class="chip left-round" ${oemStyle}><span>${escapeHtml(oemVal || 'Unknown')}</span></button>
+                                <button class="chip fill no-round"><span>${escapeHtml(maintText)}</span></button>
+                                <button class="chip fill right-round"><span>${escapeHtml(codename)}</span></button>
+                            </nav>
+                        </div>
+                        <div class="small-margin" style="display:flex; justify-content:flex-end; width:100%;">
+                            <button class="border round" onclick="showDeviceDetails('${escapeAttr(codename)}')">
+                                <i>info</i>
+                                <span>Details</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -261,18 +410,77 @@ async function loadDevices(limit = 0) {
             `;
             container.appendChild(moreWrap);
         }
+
+        // If full list (limit==0) ensure search initialized
+        if (!limit || limit === 0) {
+            if (typeof setupDeviceSearch === 'function') setupDeviceSearch();
+            if (typeof buildOemFilterChips === 'function') buildOemFilterChips();
+        }
     }
 
     // If preloaded aggregated data exists, use it immediately
     try {
+        // Prefer overrides DB produced locally: data/device_db.json
+        const dbResp = await fetch('data/device_db.json', { cache: 'no-cache' }).catch(() => null);
+        if (dbResp && dbResp.ok) {
+            const db = await dbResp.json();
+            const overrides = (db && db.overrides) ? db.overrides : {};
+
+            // Attempt to load the richer devices.json to preserve download/variant details
+            let devicesList = [];
+            try {
+                const localResp = await fetch('data/devices.json', { cache: 'no-cache' });
+                if (localResp && localResp.ok) devicesList = await localResp.json();
+            } catch (e) {
+                // ignore, we'll create minimal entries from overrides
+            }
+
+            const entries = Object.keys(overrides).map(key => {
+                const ov = overrides[key] || {};
+                const lower = key.toLowerCase();
+                const found = (devicesList || []).find(it => ((it.name || '').replace(/\.json$/i, '').toLowerCase() === lower));
+                if (found) {
+                    // Use the upstream response but apply override fields to the first response object
+                    const respArr = (found.data && Array.isArray(found.data.response)) ? found.data.response.slice() : (found.data ? [found.data] : []);
+                    const base = respArr[0] || {};
+                    const merged = Object.assign({}, base, {
+                        codename: ov.codename || base.codename || key,
+                        device: ov.model || base.device || base.model || base.device,
+                        model: ov.model || base.model || base.device || '',
+                        maintainer: ov.maintainer || base.maintainer || base.maintainer,
+                        image: ov.image || base.image || (ov.codename ? `images/devices/${ov.codename}.webp` : `images/devices/${key}.webp`)
+                    });
+                    respArr[0] = merged;
+                    return { ok: true, name: found.name || (key + '.json'), data: { response: respArr }, rawUrl: found.rawUrl || found.rawUrl };
+                }
+                // Minimal synthesized entry from override
+                const minimal = {
+                    maintainer: ov.maintainer || '',
+                    oem: ov.oem || '',
+                    device: ov.model || '',
+                    codename: ov.codename || key,
+                    image: ov.image || `images/devices/${key}.webp`
+                };
+                return { ok: true, name: key + '.json', data: { response: [minimal] } };
+            });
+
+            // Sort and render
+            entries.sort((a, b) => getUpdatedTime(b) - getUpdatedTime(a));
+            const toRender = (limit && limit > 0) ? entries.slice(0, limit) : entries;
+            renderDevices(toRender);
+            return;
+        }
+    } catch (e) {
+        console.info('device_db.json not usable, falling back to other sources', e);
+    }
+    
+    // Fallback: use any preloaded aggregated data if present
+    try {
         if (window.__preloadedData && Array.isArray(window.__preloadedData)) {
             const list = window.__preloadedData;
             const valid = list.filter(Boolean);
-            valid.sort((a, b) => {
-                const ta = a.lastModified ? Date.parse(a.lastModified) : 0;
-                const tb = b.lastModified ? Date.parse(b.lastModified) : 0;
-                return tb - ta;
-            });
+            // sort by best-known updated time desc
+            valid.sort((a, b) => getUpdatedTime(b) - getUpdatedTime(a));
             const toRender = (limit && limit > 0) ? valid.slice(0, limit) : valid;
             renderDevices(toRender);
             return;
@@ -289,12 +497,8 @@ async function loadDevices(limit = 0) {
             const list = await localResp.json();
             // Expecting array of { name, data, rawUrl, lastModified }
             const valid = (Array.isArray(list) ? list : []).filter(Boolean);
-            // sort by lastModified desc
-            valid.sort((a, b) => {
-                const ta = a.lastModified ? Date.parse(a.lastModified) : 0;
-                const tb = b.lastModified ? Date.parse(b.lastModified) : 0;
-                return tb - ta;
-            });
+            // sort by best-known updated time desc
+            valid.sort((a, b) => getUpdatedTime(b) - getUpdatedTime(a));
             const toRender = (limit && limit > 0) ? valid.slice(0, limit) : valid;
 
             renderDevices(toRender);
@@ -304,14 +508,13 @@ async function loadDevices(limit = 0) {
         console.info('Local devices cache not available or invalid, falling back to remote fetch', e);
     }
 
+    // Try remote GitHub API listing and fall back to raw fetching if necessary
     try {
-        // List repo contents (root). Adjust path if your JSON files are under subfolder.
         const apiUrl = 'https://api.github.com/repos/AlphaDroid-devices/OTA/contents/';
         const listResp = await fetch(apiUrl);
         if (!listResp.ok) throw new Error(`Failed to list repo contents: ${listResp.status}`);
 
         const items = await listResp.json();
-        // Filter JSON files
         const jsonItems = items.filter(i => i.type === 'file' && i.name.toLowerCase().endsWith('.json'));
 
         if (jsonItems.length === 0) {
@@ -319,14 +522,13 @@ async function loadDevices(limit = 0) {
             return;
         }
 
-        // Fetch JSON files in batches. Capture Last-Modified header for sorting.
         const results = [];
         const concurrency = 6;
         for (let i = 0; i < jsonItems.length; i += concurrency) {
             const slice = jsonItems.slice(i, i + concurrency);
             const batch = await Promise.all(slice.map(async item => {
                 try {
-                    const url = item.download_url || item.html_url;
+                    const url = item.download_url || item.html_url || item.url;
                     const r = await fetch(url);
                     if (!r.ok) throw new Error(`Failed to fetch ${item.name}`);
                     const data = await r.json();
@@ -340,19 +542,11 @@ async function loadDevices(limit = 0) {
             results.push(...batch);
         }
 
-        // Only keep successful fetches
         const valid = results.filter(r => r.ok);
+        // Sort by best-known updated time desc
+        valid.sort((a, b) => getUpdatedTime(b) - getUpdatedTime(a));
 
-        // Sort by Last-Modified header (most recent first). Files without header go last.
-        valid.sort((a, b) => {
-            const ta = a.lastModified ? Date.parse(a.lastModified) : 0;
-            const tb = b.lastModified ? Date.parse(b.lastModified) : 0;
-            return tb - ta;
-        });
-
-        // Apply limit if provided (>0)
         const toRender = (limit && limit > 0) ? valid.slice(0, limit) : valid;
-
         renderDevices(toRender);
 
     } catch (err) {
@@ -409,107 +603,289 @@ function hideOverlay() {
 // Create reusable modal elements
 const deviceDialog = document.createElement('dialog');
 deviceDialog.className = 'modal';
-deviceDialog.style.position = 'fixed';
-deviceDialog.style.top = '50%';
-deviceDialog.style.left = '50%';
-deviceDialog.style.transform = 'translate(-50%, -50%)';
-// ensure dialog sits above the overlay
-deviceDialog.style.zIndex = '100001';
-// allow the dialog to receive pointer events
-deviceDialog.style.pointerEvents = 'auto';
+deviceDialog.style.maxWidth = '90%';
+deviceDialog.style.width = '400px';
+deviceDialog.style.border = 'none';
+deviceDialog.style.borderRadius = '8px';
+deviceDialog.style.overflow = 'hidden';
+deviceDialog.style.zIndex = '100001'; // Above the overlay
 document.body.appendChild(deviceDialog);
 
-// Ensure overlay is hidden when the dialog is closed (ESC, cancel or dialog.close())
-if (typeof deviceDialog.addEventListener === 'function') {
-    deviceDialog.addEventListener('close', () => {
-        hideOverlay();
-    });
-    // also handle cancel (ESC key) which fires 'cancel'
-    deviceDialog.addEventListener('cancel', () => {
-        hideOverlay();
-    });
-}
-
-// Set up overlay click handler
-overlayDiv.onclick = () => {
-    if (typeof deviceDialog.close === 'function') deviceDialog.close();
-    hideOverlay();
-};
-
-// Device details modal functionality
+// Show device details in a modal dialog
 async function showDeviceDetails(codename) {
     try {
-        // Try to fetch device data from local cache first
-        const localResp = await fetch(`data/devices.json`);
-        let deviceData;
-        
-        if (localResp.ok) {
-            const list = await localResp.json();
-            deviceData = list.find(item => {
-                const device = item.data || {};
-                return (device.codename || device.device || '').toLowerCase() === codename.toLowerCase();
-            });
-        }
+        // Fetch device data (prefer local cache)
+        let deviceData = null;
+        try {
+            const localResp = await fetch('data/devices.json');
+            if (localResp && localResp.ok) {
+                const list = await localResp.json();
+                deviceData = list.find(item => {
+                    if (!item) return false;
+                    const responses = (item.data && Array.isArray(item.data.response)) ? item.data.response : (item.data ? [item.data] : []);
+                    if ((item.name || '').replace(/\.json$/i, '').toLowerCase() === codename.toLowerCase()) return true;
+                    return responses.some(d => {
+                        if (!d) return false;
+                        const candidates = [d.codename, d.device, d.id, item.name];
+                        return candidates.some(c => (c || '').toString().toLowerCase() === codename.toLowerCase());
+                    });
+                });
+            }
+        } catch (e) { /* ignore and fallback */ }
 
-        // If not found locally, fetch from GitHub
         if (!deviceData) {
             const response = await fetch(`https://raw.githubusercontent.com/AlphaDroid-devices/OTA/master/${codename}.json`);
             if (!response.ok) throw new Error('Device info not found');
             const rawData = await response.json();
-            deviceData = { data: rawData };
+            deviceData = { data: rawData, rawUrl: `https://raw.githubusercontent.com/AlphaDroid-devices/OTA/master/${codename}.json` };
         }
 
-        const d = deviceData.data;
-        
-        // Update and show the preloaded dialog
+        // Normalize
+        let d = null;
+        if (deviceData && deviceData.data) {
+            if (Array.isArray(deviceData.data.response) && deviceData.data.response.length > 0) {
+                d = deviceData.data.response.find(item => ((item.codename || item.device || '') + '').toLowerCase() === codename.toLowerCase()) || deviceData.data.response[0];
+            } else {
+                d = deviceData.data;
+            }
+        } else {
+            d = deviceData;
+        }
+
+        // Apply overrides if available
+        try {
+            const dbResp = await fetch('data/device_db.json', { cache: 'no-cache' }).catch(() => null);
+            if (dbResp && dbResp.ok) {
+                const db = await dbResp.json();
+                const ov = (db && db.overrides) ? db.overrides[codename.toLowerCase()] : null;
+                if (ov) {
+                    d = d || {};
+                    d.codename = ov.codename || d.codename || codename;
+                    d.oem = ov.oem || d.oem;
+                    d.model = ov.model || d.model || d.device || '';
+                    d.device = ov.model || d.device || d.model || '';
+                    if (ov.maintainer) d.maintainer = ov.maintainer;
+                    if (ov.image) d.image = ov.image; else if (!d.image) d.image = `images/devices/${d.codename || codename}.webp`;
+                }
+            }
+        } catch (e) { /* ignore */ }
+
+        const displayName = escapeHtml(d.name || d.model || codename);
+        const deviceCodename = escapeHtml(d.codename || d.device || codename);
+        const modalImageUrl = d.image || `images/devices/${(d.codename || codename)}.webp`;
+
+        // Variants
+        const variants = (deviceData && deviceData.data && Array.isArray(deviceData.data.response) && deviceData.data.response.length > 0)
+            ? deviceData.data.response
+            : [d];
+
+        // Helpers
+        function formatBytes(bytes) {
+            if (bytes == null || bytes === '') return 'Unknown';
+            const n = Number(bytes);
+            if (Number.isNaN(n)) return String(bytes);
+            if (n === 0) return '0 B';
+            const units = ['B','KB','MB','GB','TB'];
+            let i = 0;
+            let val = n;
+            while (val >= 1024 && i < units.length - 1) { val /= 1024; i++; }
+            const fixed = (val < 10 && i > 0) ? val.toFixed(1) : Math.round(val);
+            return `${fixed} ${units[i]}`;
+        }
+
+        function buildLinkButtons(entry) {
+            if (!entry) return '';
+
+            const groups = [
+                { name: 'Source', items: [['Device tree', entry.dt], ['Kernel', entry.kernel]] },
+                { name: 'Support', items: [['Forum', entry.forum], ['Telegram', entry.telegram], ['Paypal', entry.paypal]] },
+                { name: 'More', items: [['Recovery', entry.recovery], ['Firmware', entry.firmware], ['Vendor', entry.vendor]] }
+            ];
+
+            // keep only groups that have at least one URL
+            const present = groups.map(g => ({ name: g.name, items: g.items.filter(([lbl, url]) => url) })).filter(g => g.items.length);
+            if (!present.length) return '';
+
+            const buttons = present.map((g, idx) => {
+                let cls = 'no-round';
+                if (idx === 0) cls = 'left-round';
+                else if (idx === present.length - 1) cls = 'right-round';
+
+                const menuItems = g.items.map(([label, url]) => `
+                    <li><a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></li>
+                `).join('');
+
+                return `
+                    <button class="${cls}">
+                        <span>${escapeHtml(g.name)}</span>
+                        <i>arrow_drop_up</i>
+                        <menu class="top">
+                            ${menuItems}
+                        </menu>
+                    </button>
+                `;
+            }).join('');
+
+            return `<nav class="group connected">${buttons}</nav>`;
+        }
+
+        function buildVariantsListHtml(list) {
+            if (!list || !list.length) return '';
+            const buttons = list.map((v, i) => {
+                const label = escapeHtml(v.buildvariant || v.buildtype || v.filename || v.version || `Variant ${i+1}`);
+                let cls = 'no-round small';
+                if (i === 0) cls = 'left-round small';
+                else if (i === list.length - 1) cls = 'right-round small';
+                return `<button class="${cls}" data-variant-index="${i}">${label}</button>`;
+            }).join('');
+            return `<nav class="group connected">${buttons}</nav>`;
+        }
+
+        // Render modal
         deviceDialog.innerHTML = `
-            <h5>${escapeHtml(d.name || d.model || codename)}</h5>
-            <div class="row middle-align">
-                <i>smartphone</i>
-                <div class="max">
-                    <div class="bold">Codename</div>
-                    <div>${escapeHtml(d.codename || codename)}</div>
+            <h5>${displayName}</h5>
+            <div class="grid">
+                <div class="s12 m6">
+                    <div class="row middle-align">
+                        <i>smartphone</i>
+                        <div class="max">
+                            <div class="bold">Codename</div>
+                            <div>${deviceCodename}</div>
+                        </div>
+                    </div>
+
+                    <div class="row middle-align">
+                        <i>info</i>
+                        <div class="max">
+                            <div class="bold">Model</div>
+                            <div>${escapeHtml(d.model || d.device || 'N/A')}</div>
+                        </div>
+                    </div>
+
+                    <div class="row middle-align">
+                        <i>update</i>
+                        <div class="max">
+                            <div class="bold">Latest</div>
+                            <div id="device-latest">${escapeHtml(d.timestamp ? (new Date(Number(d.timestamp) * 1000).toISOString().split('T')[0]) : (d.version || 'Unknown'))}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s12 m6">
+                    <div class="row middle-align">
+                        <i>tag</i>
+                        <div class="max">
+                            <div class="bold">Version</div>
+                            <div id="device-version">${escapeHtml(d.version || (d.filename ? (d.filename.match(/v[\d.]+/) || [''])[0] : 'Unknown'))}</div>
+                        </div>
+                    </div>
+
+                    <div class="row middle-align">
+                        <i>storage</i>
+                        <div class="max">
+                            <div class="bold">Size</div>
+                            <div id="device-size">${escapeHtml(formatBytes(d.size || d.filesize || d.size_bytes || ''))}</div>
+                        </div>
+                    </div>
+
+                    <div class="row middle-align">
+                        <i>person</i>
+                        <div class="max">
+                            <div class="bold">Maintainer</div>
+                            <div>${(d.maintainer && typeof d.maintainer === 'object' && d.maintainer.url) ? `<a href="${escapeAttr(d.maintainer.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(d.maintainer.name || d.maintainer.url)}</a>` : escapeHtml((typeof d.maintainer === 'string' && d.maintainer) || (d.maintainer && (d.maintainer.name || d.maintainer.url)) || 'Unknown')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s12">
+                    <div class="row">
+                        <i>tag</i>
+                        <div class="max">
+                            <div class="bold">Build Variants</div>
+                            <div id="build-variants">
+                                ${buildVariantsListHtml(variants)}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="s12">
+                    <div class="row center-align">
+                        <div id="device-links-wrapper">
+                            ${buildLinkButtons(variants[0] || d)}
+                        </div>
+                    </div>
+                </div>
+                <div class="s12">
+                    <nav class="row right-align no-space">
+                        <button class="transparent link" onclick="this.closest('dialog').close(); hideOverlay()">Close</button>
+                        <button id="device-download" class="transparent link">Download</button>
+                    </nav>
                 </div>
             </div>
-            <div class="row middle-align">
-                <i>info</i>
-                <div class="max">
-                    <div class="bold">Model</div>
-                    <div>${escapeHtml(d.model || 'N/A')}</div>
-                </div>
-            </div>
-            <div class="row middle-align">
-                <i>update</i>
-                <div class="max">
-                    <div class="bold">Latest</div>
-                    <div>${escapeHtml(d.latestVersion || deviceData.lastModified || d.version || 'Unknown')}</div>
-                </div>
-            </div>
-            <div class="row middle-align">
-                <i>person</i>
-                <div class="max">
-                    <div class="bold">Maintainer</div>
-                    <div>${(d.maintainer && d.maintainer.url) ? `<a href="${escapeAttr(d.maintainer.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(d.maintainer.name || d.maintainer.url)}</a>` : escapeHtml((d.maintainer && (d.maintainer.name || d.maintainer.url)) || 'Unknown')}</div>
-                </div>
-            </div>
-            <nav class="right-align no-space">
-                <button class="transparent link" onclick="this.closest('dialog').close(); hideOverlay()">Close</button>
-                <button class="transparent link" onclick="window.open('https://sourceforge.net/projects/alphadroid-project/files/${codename}', '_blank')">Download</button>
-            </nav>
         `;
 
-        // Show the dialog and overlay
+        // Variant interactions
+        (function() {
+            const entries = variants;
+            const getListButtons = () => deviceDialog.querySelectorAll('#build-variants [data-variant-index]');
+            let selectedIndex = 0;
+
+            function getEntryForIndex(idx) {
+                return entries[idx] || entries[0] || d;
+            }
+
+            function updateVariantDisplay() {
+                const entry = getEntryForIndex(selectedIndex);
+                const btn = deviceDialog.querySelector('#device-download');
+                const url = entry.download || entry.url || entry.file || entry.filename || deviceData.rawUrl || `https://sourceforge.net/projects/alphadroid-project/files/${codename}`;
+                if (btn) btn.onclick = () => window.open(url, '_blank');
+
+                if (btn) {
+                    const sizeLabel = formatBytes(entry.size || entry.filesize || entry.size_bytes || d.size || '');
+                    btn.textContent = `Download (${sizeLabel})`;
+                }
+
+                const versionEl = deviceDialog.querySelector('#device-version');
+                const latestEl = deviceDialog.querySelector('#device-latest');
+                const sizeEl = deviceDialog.querySelector('#device-size');
+                if (versionEl) versionEl.textContent = entry.version || entry.filename || entry.buildvariant || entry.buildtype || (d && d.version) || 'Unknown';
+                if (latestEl) latestEl.textContent = entry.timestamp ? new Date(Number(entry.timestamp) * 1000).toISOString().split('T')[0] : (entry.version || 'Unknown');
+                if (sizeEl) sizeEl.textContent = formatBytes(entry.size || entry.filesize || entry.size_bytes || d.size || '');
+
+                const linksWrapper = deviceDialog.querySelector('#device-links-wrapper');
+                if (linksWrapper) linksWrapper.innerHTML = buildLinkButtons(entry);
+
+                const chips = getListButtons();
+                if (chips && chips.length) {
+                    chips.forEach(c => c.classList.remove('active'));
+                    const active = deviceDialog.querySelector(`#build-variants [data-variant-index='${selectedIndex}']`);
+                    if (active) active.classList.add('active');
+                }
+            }
+
+            const listBtns = getListButtons();
+            if (listBtns && listBtns.length) {
+                listBtns.forEach((b) => {
+                    const idx = Number(b.getAttribute('data-variant-index'));
+                    b.addEventListener('click', () => {
+                        selectedIndex = idx;
+                        updateVariantDisplay();
+                    });
+                });
+                updateVariantDisplay();
+            } else {
+                selectedIndex = 0;
+                updateVariantDisplay();
+            }
+        })();
+
+        // show modal
         showOverlay();
-        // Use show() instead of showModal() to avoid the UA backdrop that can obscure custom overlays
-        if (typeof deviceDialog.show === 'function') {
-            deviceDialog.show();
-        } else if (typeof deviceDialog.showModal === 'function') {
-            // fallback if older browser doesn't support show()
-            deviceDialog.showModal();
-        }
+        if (typeof deviceDialog.show === 'function') deviceDialog.show();
+        else if (typeof deviceDialog.showModal === 'function') deviceDialog.showModal();
     } catch (error) {
         console.error('Error showing device details:', error);
-        // Show error snackbar using BeerCSS
         const snackbar = document.createElement('div');
         snackbar.className = 'snackbar';
         snackbar.innerHTML = `
@@ -530,4 +906,141 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) {
     return escapeHtml(s).replace(/"/g, '&quot;');
+}
+
+// Search setup
+function setupDeviceSearch() {
+    const input = document.getElementById('device-search-input');
+    const suggestMenu = document.getElementById('device-search-suggestions'); // retained but unused (suggestions removed)
+    if (suggestMenu) suggestMenu.style.display = 'none';
+    if (!input) return;
+
+    const container = document.querySelector('.devices-container');
+    if (!container) return;
+
+    function getCards() {
+        return Array.from(container.querySelectorAll('article[data-codename]'));
+    }
+
+    function activeOemFilter() {
+        const active = document.querySelector('#oem-filter-chips button.primary[data-oem]');
+        return active ? (active.getAttribute('data-oem') || '').toLowerCase() : '';
+    }
+
+    function runFilter(raw) {
+        const oemFilter = activeOemFilter();
+        const val = (raw || '').trim().toLowerCase();
+        const tokens = val.split(/\s+/).filter(Boolean);
+        const cards = getCards();
+        if (!tokens.length && !oemFilter) {
+            cards.forEach(c => c.style.display = '');
+            return;
+        }
+        cards.forEach(c => {
+            const codename = c.getAttribute('data-codename') || '';
+            const oem = c.getAttribute('data-oem') || '';
+            const model = c.getAttribute('data-model') || '';
+            if (oemFilter && oem !== oemFilter) {
+                c.style.display = 'none';
+                return;
+            }
+            const hay = (codename + ' ' + oem + ' ' + model).toLowerCase();
+            const match = tokens.every(t => hay.includes(t));
+            c.style.display = match ? '' : (tokens.length ? 'none' : '');
+        });
+    }
+
+    let debounceTimer = null;
+    function schedule() {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => runFilter(input.value), 1000); // 1s cooldown
+    }
+
+    window.applyDeviceSearch = () => runFilter(input.value || '');
+    input.addEventListener('input', schedule);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { // allow manual immediate search on Enter
+            if (debounceTimer) clearTimeout(debounceTimer);
+            runFilter(input.value);
+        } else if (e.key === 'Escape') {
+            input.value='';
+            if (debounceTimer) clearTimeout(debounceTimer);
+            runFilter('');
+        }
+    });
+
+    // expose for external trigger (OEM pills)
+    window.__runDeviceSearchFilter = () => runFilter(input.value || '');
+}
+
+function buildOemFilterChips() {
+    const wrap = document.getElementById('oem-filter-chips');
+    if (!wrap) return;
+    const cards = Array.from(document.querySelectorAll('.devices-container article[data-oem]'));
+    const oems = Array.from(new Set(cards.map(c => c.getAttribute('data-oem') || '').filter(Boolean))).sort();
+    if (!oems.length) { wrap.innerHTML=''; return; }
+    wrap.innerHTML = '';
+
+    const nav = document.createElement('nav');
+    nav.className = 'group connected';
+    nav.style.display = 'flex';
+    nav.style.flexWrap = 'wrap';
+    nav.style.gap = '2px';
+    wrap.appendChild(nav);
+
+    function applyRoundClass(btn, i, total) {
+        btn.classList.remove('left-round','right-round','no-round');
+        if (i === 0) {
+            btn.classList.add('left-round');
+        } else if (i === total - 1) {
+            btn.classList.add('right-round');
+        } else {
+            btn.classList.add('no-round');
+        }
+    }
+
+    function rebuildRoundClasses() {
+        const list = Array.from(nav.querySelectorAll('button'));
+        list.forEach((b, i) => applyRoundClass(b, i, list.length));
+    }
+
+    function makeButton(label, dataOEM) {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.className = 'small border';
+        if (dataOEM) btn.setAttribute('data-oem', dataOEM); else btn.setAttribute('data-all', '');
+        btn.addEventListener('click', () => {
+            const isActive = btn.classList.contains('primary');
+            const allButtons = nav.querySelectorAll('button');
+            allButtons.forEach(b => { b.classList.remove('fill','primary'); if (!b.hasAttribute('data-all')) b.classList.add('border'); });
+            if (btn.hasAttribute('data-all')) {
+                if (!isActive) { btn.classList.remove('border'); btn.classList.add('fill','primary'); }
+                else { // keep All active always
+                    btn.classList.add('fill','primary'); btn.classList.remove('border');
+                }
+            } else {
+                if (!isActive) {
+                    btn.classList.remove('border');
+                    btn.classList.add('fill','primary');
+                } else {
+                    // revert to All
+                    const all = nav.querySelector('button[data-all]');
+                    if (all) { all.classList.add('fill','primary'); all.classList.remove('border'); }
+                }
+            }
+            if (window.__runDeviceSearchFilter) window.__runDeviceSearchFilter();
+        });
+        return btn;
+    }
+
+    // All button first
+    const allBtn = makeButton('All', null);
+    allBtn.classList.remove('border');
+    allBtn.classList.add('fill','primary');
+    nav.appendChild(allBtn);
+
+    // OEM buttons
+    oems.forEach(o => nav.appendChild(makeButton(o, o)));
+
+    rebuildRoundClasses();
 }

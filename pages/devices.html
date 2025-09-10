@@ -8,6 +8,13 @@
     </a>
   </div>
 
+  <div id="device-search-wrapper" class="field large prefix round fill active" style="max-width:640px;margin:16px auto;">
+    <i class="front">search</i>
+    <input id="device-search-input" placeholder="Search devices (OEM, model, codename)" autocomplete="off" />
+    <menu class="min" id="device-search-suggestions" style="display:none"></menu>
+  </div>
+  <div id="oem-filter-chips" class="center-align" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px auto 12px;max-width:760px;"></div>
+
   <div class="devices-container">
     <!-- loadDevices will populate this area -->
   </div>
@@ -27,6 +34,16 @@
     if (!tryLoad()) {
       window.addEventListener('load', tryLoad);
       setTimeout(tryLoad, 300);
+    }
+  })();
+
+  (function(){
+    const el = document.getElementById('device-search-input');
+    if(el){
+      el.addEventListener('input', () => {
+        window.__deviceSearchQuery = el.value || '';
+        if (typeof loadDevices === 'function') loadDevices(0);
+      });
     }
   })();
 </script>
