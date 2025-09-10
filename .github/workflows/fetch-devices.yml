@@ -21,18 +21,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          node -e "const https = require('https');\nconst fs = require('fs');\nconst api = 'https://api.github.com/repos/AlphaDroid-devices/OTA/contents/';\n
+          # write a JS script using a quoted heredoc to avoid shell quoting/escaping issues
+          mkdir -p .github/scripts
+          cat > .github/scripts/fetch-devices.js <<'JS'
+          const https = require('https');
+          const fs = require('fs');
+          const api = 'https://api.github.com/repos/AlphaDroid-devices/OTA/contents/';
           const opts = { headers: { 'User-Agent': 'github-action', 'Accept': 'application/vnd.github.v3+json' }};
 
-            function get(url) {
-              return new Promise((res, rej) => {
-                https.get(url, opts, r => {
-                  let body = '';
-                  r.on('data', c => body += c);
-                  r.on('end', () => res({ statusCode: r.statusCode, headers: r.headers, body }));
-                }).on('error', rej);
-              });
-            }
+          function get(url) {
+            return new Promise((res, rej) => {
+              https.get(url, opts, r => {
+                let body = '';
+                r.on('data', c => body += c);
+                r.on('end', () => res({ statusCode: r.statusCode, headers: r.headers, body }));
+              }).on('error', rej);
+            });
+          }
 
           (async () => {
             try {
@@ -69,6 +74,9 @@ jobs:
               process.exit(1);
             }
           })();
+          JS
+
+          node .github/scripts/fetch-devices.js
 
       - name: Commit and push changes
         run: |
