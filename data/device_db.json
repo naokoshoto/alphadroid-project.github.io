@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "Device metadata overrides. Keys are lowercase codenames (filename without .json). Provide codename, oem, model, maintainer, and image to override values shown in the UI.",
-  "overrides": {
+  "overrides": { 
     "rmx3461": { "codename": "rmx3461", "oem": "Realme", "model": "Realme 9 5G SE", "maintainer": "DRvP00", "image": "images/devices/rmx3461.webp" },
     "spacewar": { "codename": "spacewar", "oem": "Nothing", "model": "Phone (1)", "maintainer": "zizzyboi", "image": "images/devices/spacewar.webp" },
     "akita": { "codename": "akita", "oem": "Google", "model": "Pixel 8a", "maintainer": "OscarM", "image": "images/devices/akita.webp" },

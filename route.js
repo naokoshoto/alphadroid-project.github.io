@@ -751,7 +751,7 @@ async function showDeviceDetails(codename) {
             <div class="grid">
                 <div class="s12 m6">
                     <div class="row middle-align">
-                        <i>smartphone</i>
+                        <i>smartphone</i> 
                         <div class="max">
                             <div class="bold">Codename</div>
                             <div>${deviceCodename}</div>
