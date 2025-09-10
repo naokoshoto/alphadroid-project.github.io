@@ -5,516 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlphaDroid ROM | Next-Generation Android Experience</title>
     <link rel="shortcut icon" href="images/fav.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols+2&family=Noto+Sans+Symbols:wght@100..900&family=Roboto+Flex:opsz,slnt,wdth,wght,GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC@8..144,-10..0,25..151,100..1000,-200..150,27..175,323..603,25..135,649..854,-305..-98,560..788,416..570,528..760&display=swap&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/beercss@3.11.33/dist/cdn/beer.min.css" rel="stylesheet" />
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.11.33/dist/cdn/beer.min.js"></script>
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"></script>
     <style>
-        :root {
-            /* Material You dynamic color system */
-            --primary: #6750A4;
-            --on-primary: #FFFFFF;
-            --primary-container: #EADDFF;
-            --on-primary-container: #21005D;
-            --secondary: #625B71;
-            --on-secondary: #FFFFFF;
-            --secondary-container: #E8DEF8;
-            --on-secondary-container: #1D192B;
-            --tertiary: #7D5260;
-            --on-tertiary: #FFFFFF;
-            --surface: #FEF7FF;
-            --on-surface: #1D1B20;
-            --surface-variant: #E7E0EC;
-            --on-surface-variant: #49454F;
-            --outline: #79747E;
-            
-            --animation-speed: 0.4s;
-            --border-radius: 24px;
-            --elevation: 0 3px 6px rgba(0,0,0,0.1);
-            --hover-elevation: 0 8px 16px rgba(0,0,0,0.15);
-        }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --primary: #D0BCFF;
-                --on-primary: #381E72;
-                --primary-container: #4F378B;
-                --on-primary-container: #EADDFF;
-                --secondary: #CCC2DC;
-                --on-secondary: #332D41;
-                --secondary-container: #4A4458;
-                --on-secondary-container: #E8DEF8;
-                --tertiary: #EFB8C8;
-                --on-tertiary: #492532;
-                --surface: #141218;
-                --on-surface: #E6E0E9;
-                --surface-variant: #49454F;
-                --on-surface-variant: #CAC4D0;
-                --outline: #938F99;
-                
-                --elevation: 0 6px 12px rgba(0,0,0,0.3);
-                --hover-elevation: 0 12px 24px rgba(0,0,0,0.4);
-            }
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--surface);
-            color: var(--on-surface);
-            line-height: 1.6;
-            overflow-x: hidden;
-            background-image: url(images/milk.jpg);
-            background-position:right;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Header Styles */
-        header {
-            padding: 20px 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            background-color: rgba(var(--surface-rgb), 0.8);
-            border-bottom: 1px solid var(--surface-variant);
-        }
-
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--on-primary);
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .logo-img {
-            height: 40px;
-            width: auto;
-            border-radius: 8px;
-            object-fit: contain;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 24px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--on-surface);
-            font-weight: 500;
-            position: relative;
-            padding: 8px 4px;
-            transition: color var(--animation-speed);
-        }
-
-        nav a:hover {
-            color: var(--primary);
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: var(--primary);
-            transition: width var(--animation-speed);
-        }
-
-        nav a:hover::after {
-            width: 100%;
-        }
-
-        .cta-button {
-            background-color: var(--primary);
-            color: var(--on-primary);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 100px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--animation-speed);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: var(--elevation);
-        }
-
-        .cta-button:hover {
-            background-color: var(--primary-container);
-            color: var(--on-primary-container);
-            transform: translateY(-2px);
-            box-shadow: var(--hover-elevation);
-        }
-
-        /* Hero Section */
-        .hero {
-            padding: 180px 0 100px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-content {
-            max-width: 700px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 24px;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            margin-bottom: 40px;
-            color: var(--on-surface-variant);
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .secondary-button {
-            background-color: var(--secondary-container);
-            color: var(--on-secondary-container);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 100px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--animation-speed);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .secondary-button:hover {
-            background-color: var(--secondary);
-            color: var(--on-secondary);
-            transform: translateY(-2px);
-        }
-
-        .hero-animation {
-            position: absolute;
-            top: 50%;
-            right: -200px;
-            transform: translateY(-50%);
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
-            opacity: 0.2;
-            z-index: 1;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        .math-expression {
-            position: absolute;
-            top: 50%;
-            right: 100px;
-            transform: translateY(-50%) rotate(-5deg);
-            font-size: 5rem;
-            color: var(--primary);
-            opacity: 0.15;
-            z-index: 0;
-            font-family: 'Times New Roman', serif;
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        /* Features Section */
-        .features {
-            padding: 100px 0;
-            margin: 0 20px;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 60px;
-            color: var(--on-surface);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-
-        .feature-card {
-            background-color: var(--surface);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            transition: all var(--animation-speed);
-            box-shadow: var(--elevation);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--hover-elevation);
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(to right, var(--primary), var(--tertiary));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform var(--animation-speed);
-        }
-
-        .feature-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .feature-icon {
-            width: 64px;
-            height: 64px;
-            background-color: var(--primary-container);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            color: var(--primary);
-            font-size: 1.8rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-        }
-
-        /* Download Section */
-        .download {
-            padding: 100px 0;
-        }
-
-        .devices-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-
-        .device-card {
-            background-color: var(--surface);
-            border-radius: var(--border-radius);
-            padding: 25px;
-            width: 250px;
-            text-align: center;
-            transition: all var(--animation-speed);
-            box-shadow: var(--elevation);
-            cursor: pointer;
-        }
-
-        .device-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--hover-elevation);
-        }
-
-        .device-image {
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .device-image svg {
-            width: 120px;
-            height: 180px;
-            fill: var(--on-surface);
-        }
-
-        .device-name {
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
-
-        .device-status {
-            font-size: 0.9rem;
-            color: var(--secondary);
-        }
-
-        /* Footer */
-        footer {
-            background-color: var(--surface-variant);
-            padding: 60px 0 30px;
-            border-top-left-radius: var(--border-radius);
-            border-top-right-radius: var(--border-radius);
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .footer-column h3 {
-            font-size: 1.25rem;
-            margin-bottom: 20px;
-            color: var(--primary);
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 12px;
-        }
-
-        .footer-links a {
-            text-decoration: none;
-            color: var(--on-surface-variant);
-            transition: color var(--animation-speed);
-        }
-
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .social-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--surface);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--on-surface);
-            transition: all var(--animation-speed);
-        }
-
-        .social-icon:hover {
-            background-color: var(--primary);
-            color: var(--on-primary);
-            transform: translateY(-3px);
-        }
-
-        .copyright {
-            text-align: center;
-            padding-top: 30px;
-            border-top: 1px solid var(--outline);
-            color: var(--on-surface-variant);
-            font-size: 0.9rem;
-        }
-
-        /* Animations */
-        @keyframes float {
-            0% {
-                transform: translateY(-50%) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-55%) rotate(5deg);
-            }
-            100% {
-                transform: translateY(-50%) rotate(0deg);
-            }
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 0.1;
-            }
-            50% {
-                opacity: 0.2;
-            }
-            100% {
-                opacity: 0.1;
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .hero {
-                text-align: center;
-            }
-            
-            .hero-content {
-                max-width: 100%;
-            }
-            
-            .hero-buttons {
-                justify-content: center;
-            }
-            
-            .hero-animation, .math-expression {
-                display: none;
-            }
-            
-            nav ul {
-                display: none;
-            }
-        }
-
-        .me{
-            text-decoration: none;
-            color: white;
-        }
     </style>
 </head>
 <body>
+    <header class="fixed bottom-align center-align large-blur" >
+        <nav>
+            <div class="max transparent"></div>
+            <button id="home" class="center-align extra transparent">
+                <i><svg width="69" height="70" viewBox="0 0 69 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M25.5508 1.07617C29.3887 -1.13945 34.2959 0.175799 36.5117 4.01367L67.6592 57.9609C69.8747 61.7988 68.5593 66.707 64.7217 68.9229C60.8839 71.1384 55.9766 69.823 53.7607 65.9854L29.5723 24.0908L14.9746 49.375C12.7589 53.2128 7.85155 54.5279 4.01367 52.3125C0.175837 50.0967 -1.13936 45.1895 1.07617 41.3516L22.3633 4.48047C23.0406 3.10165 24.1205 1.90197 25.5508 1.07617ZM28.875 0.709961C28.1907 0.70788 27.5022 0.774053 26.8213 0.916016L37.0762 18.6768C39.0455 22.0873 43.2639 23.3899 46.7764 21.793L45.8291 20.1523C43.223 21.2365 40.1543 20.2461 38.7051 17.7363L28.875 0.709961Z"/>
+                </svg></i>
+                <p class="top bold">AlphaDroid</p>
+            </button>
+            <div class="max transparent"></div>
+        </nav>
+    </header>
+
+    <nav id="desktop" class="m l left">
+        <header>
+            <button id="menu" class="extra circle transparent">
+                <i>menu</i>
+            </button>
+            <button class="extend square round">
+                <i>download</i>
+                <span>Download</span>
+            </button>
+        </header>
+        <a class="active"  onclick="navigateTo('/')">
+            <i>home</i>
+            <span>Home</span>
+        </a>
+        <a  onclick="navigateTo('/features')">
+            <i>checklist</i>
+            <span>Features</span>
+        </a>
+        <a  onclick="navigateTo('/screenshots')">
+            <i>smartphone</i>
+            <span>Screenshots</span>
+        </a>
+    </nav>
+    <nav id="mobile" class="s bottom">
+        <a class="active" onclick="navigateTo('/')">
+            <i>home</i>
+            <span>Home</span>
+        </a>
+        <a onclick="navigateTo('/features')">
+            <i>checklist</i>
+            <span>Features</span>
+        </a>
+        <a onclick="navigateTo('/screenshots')">
+            <i>smartphone</i>
+            <span>Screenshots</span>
+        </a>
+    </nav>
+    <footer class="s fixed transparent bottom-align right-align">
+        <nav>
+            <div class="max"></div>
+            <button class="extend circle extra large-elevate">
+                <i>download</i>
+                <span>Download</span>
+            </button>
+            <div class="max"></div>
+        </nav>
+    </footer>
+
+
+
+
     <!-- Header -->
-    <header>
+    <!-- header>
         <div class="container header-container">
                 <a href="index.html" class="logo">
             <div class="logo-icon">
-                <img src="images/logo.jpg" alt="logo" class="logo-img" />
+                <svg width="69" height="70" viewBox="0 0 69 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M25.5508 1.07617C29.3887 -1.13945 34.2959 0.175799 36.5117 4.01367L67.6592 57.9609C69.8747 61.7988 68.5593 66.707 64.7217 68.9229C60.8839 71.1384 55.9766 69.823 53.7607 65.9854L29.5723 24.0908L14.9746 49.375C12.7589 53.2128 7.85155 54.5279 4.01367 52.3125C0.175837 50.0967 -1.13936 45.1895 1.07617 41.3516L22.3633 4.48047C23.0406 3.10165 24.1205 1.90197 25.5508 1.07617ZM28.875 0.709961C28.1907 0.70788 27.5022 0.774053 26.8213 0.916016L37.0762 18.6768C39.0455 22.0873 43.2639 23.3899 46.7764 21.793L45.8291 20.1523C43.223 21.2365 40.1543 20.2461 38.7051 17.7363L28.875 0.709961Z"  class="logo-img"/>
+</svg>
+
             </div>
                 <span>AlphaDroid</span>
             </a>
@@ -531,142 +108,16 @@
                 Download ROM
             </button></a>
         </div>
-    </header>
+    </header -->
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Experience the Future of Android</h1>
-                <p>AlphaDroid is a custom ROM based on LineageOS/crDroid, with a new look and some extra features and optimizations.</p>
-                <div class="hero-buttons">
-                    <a target="_blank" href="index.html#download"><button class="cta-button">
-                        <span class="material-symbols-rounded">rocket_launch</span>
-                        Install Now
-                    </button></a>
-                    <a href="index.html#features"><button class="secondary-button">
-                        <span class="material-symbols-rounded">visibility</span>
-                        View Features
-                    </button></a>
-                </div>
-            </div>
-        </div>
-        <div class="hero-animation"></div>
-        <div class="math-expression">\(\frac{1}{2}\langle x\rangle_{i}^{v}\)</div>
-    </section>
 
-    <!-- Features Section -->
-    <section class="features" id="features">
-        <div class="container">
-            <h2 class="section-title">Powerful Features</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <span class="material-symbols-rounded">palette</span>
-                    </div>
-                    <h3>Material You Design</h3>
-                    <p>Experience Google's latest design language with dynamic theming that adapts to your wallpaper.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <span class="material-symbols-rounded">speed</span>
-                    </div>
-                    <h3>Blazing Performance</h3>
-                    <p>System enhancements deliver faster app launches and smoother UI.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <span class="material-symbols-rounded">battery_charging_full</span>
-                    </div>
-                    <h3>Extended Battery Life</h3>
-                    <p>Advanced power management provides longer battery life.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <span class="material-symbols-rounded">tune</span>
-                    </div>
-                    <h3>Deep Customization</h3>
-                    <p>Tailor every aspect of your device with our powerful customization engine.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <span class="material-symbols-rounded">enhanced_encryption</span>
-                    </div>
-                    <h3>Enhanced Privacy</h3>
-                    <p>Take control of your data with granular app permissions and privacy dashboard.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <span class="material-symbols-rounded">update</span>
-                    </div>
-                    <h3>Monthly Updates</h3>
-                    <p>Regular security patches and feature updates keep your device current and secure.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Download Section -->
-    <section class="download" id="download">
-        <div class="container">
-            <h2 class="section-title">Download for Your Device</h2>
-            <div class="devices-container">
-                <div class="device-card">
-                    <div class="device-image">
-                        <svg viewBox="0 0 24 48">
-                            <rect x="2" y="2" width="20" height="44" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <rect x="6" y="6" width="12" height="30" rx="1" fill="currentColor" opacity="0.3"/>
-                            <circle cx="12" cy="41" r="2" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div class="device-name">Pixel 7 Pro</div>
-                    <div class="device-status">Official • Stable</div>
-                </div>
-                <div class="device-card">
-                    <div class="device-image">
-                        <svg viewBox="0 0 24 48">
-                            <rect x="2" y="2" width="20" height="44" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <rect x="6" y="6" width="12" height="30" rx="1" fill="currentColor" opacity="0.3"/>
-                            <circle cx="12" cy="41" r="2" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div class="device-name">Pixel 6a</div>
-                    <div class="device-status">Official • Stable</div>
-                </div>
-                <div class="device-card">
-                    <div class="device-image">
-                        <svg viewBox="0 0 24 48">
-                            <rect x="2" y="2" width="20" height="44" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <rect x="6" y="6" width="12" height="30" rx="1" fill="currentColor" opacity="0.3"/>
-                            <circle cx="12" cy="41" r="2" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div class="device-name">OnePlus 9 Pro</div>
-                    <div class="device-status">Official • Beta</div>
-                </div>
-                <div class="device-card">
-                    <div class="device-image">
-                        <svg viewBox="0 0 24 48">
-                            <rect x="2" y="2" width="20" height="44" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <rect x="6" y="6" width="12" height="30" rx="1" fill="currentColor" opacity="0.3"/>
-                            <circle cx="12" cy="41" r="2" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div class="device-name">Nothing Phone (1)</div>
-                    <div class="device-status">Official • Stable</div>
-                </div>
-            </div>
-            <div style="text-align: center;">
-                <a target="_blank" href="devices.html"><button class="cta-button">
-                    <span class="material-symbols-rounded">list</span>
-                    View All Supported Devices
-                </button></a>
-            </div>
-        </div>
-    </section>
+<main class="responsive max">
+    <div id="app"></div>
+</main>
 
     <!-- Footer -->
-    <footer>
+    <!-- div>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-column">
@@ -695,32 +146,22 @@
                 &copy; 2025 AlphaDroid Project. This is an open-source project not affiliated with Google or Android. All trademarks are the property of their respective owners. <br> Site made by <a class="me" href="https://t.me/Pacuka">Pacuka</a>
             </div>
         </div>
-    </footer>
+    </div -->
 
+    <script src="index.js" defer></script>
+    <script src="route.js"></script>
     <script>
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
+        document.getElementById('menu').addEventListener('click', function() {
+            document.getElementById('desktop').classList.toggle('max');
         });
 
-        // Material You dynamic color simulation
-        document.addEventListener('DOMContentLoaded', function() {
-            const colors = ['#6750A4', '#006A6A', '#7D5260', '#006C84', '#635D78'];
-            let currentColorIndex = 0;
-            
-            function updateColors() {
-                document.documentElement.style.setProperty('--primary', colors[currentColorIndex]);
-                
-                currentColorIndex = (currentColorIndex + 1) % colors.length;
+        document.getElementById('home').addEventListener('click', function() {
+            if (window.scrollY > 0) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => navigateTo('/'), 500);
+            } else {
+                navigateTo('/');
             }
-            
-            // Change colors every 10 seconds for demo purposes
-            setInterval(updateColors, 10000);
         });
     </script>
 </body>

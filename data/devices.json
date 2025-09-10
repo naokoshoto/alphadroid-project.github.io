@@ -1,0 +1,92 @@
+[
+  {
+    "name": "alioth.json",
+    "data": {
+      "codename": "alioth",
+      "name": "POCO F3 / Mi 11X / Redmi K40",
+      "model": "M2012K11AG",
+      "latestVersion": "2024-01-15T18:30:00Z",
+      "maintainer": {
+        "name": "AlphaDroid Team",
+        "url": "https://github.com/AlphaDroid-devices"
+      }
+    },
+    "rawUrl": "https://raw.githubusercontent.com/AlphaDroid-devices/OTA/main/alioth.json",
+    "lastModified": "2024-01-15T18:30:00Z"
+  },
+  {
+    "name": "davinci.json",
+    "data": {
+      "codename": "davinci",
+      "name": "Redmi K20 / Mi 9T",
+      "model": "M1903F10G",
+      "latestVersion": "2024-01-14T10:15:00Z",
+      "maintainer": {
+        "name": "AlphaDroid Team",
+        "url": "https://github.com/AlphaDroid-devices"
+      }
+    },
+    "rawUrl": "https://raw.githubusercontent.com/AlphaDroid-devices/OTA/main/davinci.json",
+    "lastModified": "2024-01-14T10:15:00Z"
+  },
+  {
+    "name": "lmi.json",
+    "data": {
+      "codename": "lmi",
+      "name": "POCO F2 Pro / Redmi K30 Pro",
+      "model": "M2004J11G",
+      "latestVersion": "2024-01-12T09:45:00Z",
+      "maintainer": {
+        "name": "AlphaDroid Team",
+        "url": "https://github.com/AlphaDroid-devices"
+      }
+    },
+    "rawUrl": "https://raw.githubusercontent.com/AlphaDroid-devices/OTA/main/lmi.json",
+    "lastModified": "2024-01-12T09:45:00Z"
+  },
+  {
+    "name": "spes.json",
+    "data": {
+      "codename": "spes",
+      "name": "Redmi Note 11",
+      "model": "2201117TG",
+      "latestVersion": "2024-01-10T14:20:00Z",
+      "maintainer": {
+        "name": "AlphaDroid Team",
+        "url": "https://github.com/AlphaDroid-devices"
+      }
+    },
+    "rawUrl": "https://raw.githubusercontent.com/AlphaDroid-devices/OTA/main/spes.json",
+    "lastModified": "2024-01-10T14:20:00Z"
+  },
+  {
+    "name": "vayu.json",
+    "data": {
+      "codename": "vayu",
+      "name": "POCO X3 Pro",
+      "model": "M2102J20SG",
+      "latestVersion": "2024-01-08T16:40:00Z",
+      "maintainer": {
+        "name": "AlphaDroid Team",
+        "url": "https://github.com/AlphaDroid-devices"
+      }
+    },
+    "rawUrl": "https://raw.githubusercontent.com/AlphaDroid-devices/OTA/main/vayu.json",
+    "lastModified": "2024-01-08T16:40:00Z"
+  },
+  {
+    "name": "venus.json",
+    "data": {
+      "codename": "venus",
+      "name": "Mi 11",
+      "model": "M2011K2G",
+      "latestVersion": "2024-01-05T11:20:00Z",
+      "maintainer": {
+        "name": "AlphaDroid Team",
+        "url": "https://github.com/AlphaDroid-devices"
+      }
+    },
+    "rawUrl": "https://raw.githubusercontent.com/AlphaDroid-devices/OTA/main/venus.json",
+    "lastModified": "2024-01-05T11:20:00Z"
+  }
+]

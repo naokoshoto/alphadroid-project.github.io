@@ -1,0 +1,83 @@
+name: Fetch device JSONs
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Fetch and aggregate device JSONs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node -e "const https = require('https');\nconst fs = require('fs');\nconst api = 'https://api.github.com/repos/AlphaDroid-devices/OTA/contents/';\n
+          const opts = { headers: { 'User-Agent': 'github-action', 'Accept': 'application/vnd.github.v3+json' }};
+
+            function get(url) {
+              return new Promise((res, rej) => {
+                https.get(url, opts, r => {
+                  let body = '';
+                  r.on('data', c => body += c);
+                  r.on('end', () => res({ statusCode: r.statusCode, headers: r.headers, body }));
+                }).on('error', rej);
+              });
+            }
+
+          (async () => {
+            try {
+              const listResp = await get(api);
+              if (listResp.statusCode !== 200) {
+                console.error('Failed to list OTA repo contents:', listResp.statusCode);
+                process.exit(1);
+              }
+              const items = JSON.parse(listResp.body).filter(i => i.type === 'file' && i.name.toLowerCase().endsWith('.json'));
+              const results = [];
+              for (const it of items) {
+                try {
+                  const r = await get(it.download_url);
+                  if (r.statusCode === 200) {
+                    const data = JSON.parse(r.body);
+                    results.push({
+                      name: it.name,
+                      data,
+                      rawUrl: it.download_url,
+                      lastModified: r.headers['last-modified'] || null
+                    });
+                  } else {
+                    console.warn('Skipping', it.name, 'status', r.statusCode);
+                  }
+                } catch (e) {
+                  console.warn('Error fetching', it.name, e.message);
+                }
+              }
+              if (!fs.existsSync('data')) fs.mkdirSync('data');
+              fs.writeFileSync('data/devices.json', JSON.stringify(results, null, 2));
+              console.log('Wrote data/devices.json (items: ' + results.length + ')');
+            } catch (e) {
+              console.error(e);
+              process.exit(1);
+            }
+          })();
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/devices.json || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update aggregated devices.json [skip ci]"
+            git push
+          fi

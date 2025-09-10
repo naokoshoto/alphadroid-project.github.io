@@ -1,0 +1,92 @@
+<section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Experience the Future of Android</h1>
+                <p>AlphaDroid is a custom ROM based on LineageOS/crDroid, with a new look and some extra features and optimizations.</p>
+                <div class="hero-buttons">
+                    <a target="_blank" href="index.html#download">
+                        <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme">
+                            <i class="mdui-icon material-icons">rocket_launch</i>
+                            Install Now
+                        </button>
+                    </a>
+                    <a href="index.html#features">
+                        <button class="mdui-btn mdui-btn-raised mdui-ripple">
+                            <i class="mdui-icon material-icons">visibility</i>
+                            View Features
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="hero-animation"></div>
+        <div class="math-expression">\(\frac{1}{2}\langle x\rangle_{i}^{v}\)</div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-symbols-rounded">palette</span>
+                    </div>
+                    <h3>Material You Design</h3>
+                    <p>Experience Google's latest design language with dynamic theming that adapts to your wallpaper.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-symbols-rounded">speed</span>
+                    </div>
+                    <h3>Blazing Performance</h3>
+                    <p>System enhancements deliver faster app launches and smoother UI.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-symbols-rounded">battery_charging_full</span>
+                    </div>
+                    <h3>Extended Battery Life</h3>
+                    <p>Advanced power management provides longer battery life.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-symbols-rounded">tune</span>
+                    </div>
+                    <h3>Deep Customization</h3>
+                    <p>Tailor every aspect of your device with our powerful customization engine.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-symbols-rounded">enhanced_encryption</span>
+                    </div>
+                    <h3>Enhanced Privacy</h3>
+                    <p>Take control of your data with granular app permissions and privacy dashboard.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-symbols-rounded">update</span>
+                    </div>
+                    <h3>Monthly Updates</h3>
+                    <p>Regular security patches and feature updates keep your device current and secure.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <div class="container">
+            <h2 class="section-title">Download for Your Device</h2>
+            <!-- devices will be rendered here by route.js -> loadDevices() -->
+            <div class="devices-container" aria-live="polite">
+                <!-- dynamic device cards inserted here -->
+            </div>
+             <div style="text-align: center;">
+                 <a href="#" onclick="navigateTo('/devices'); return false;"><button class="cta-button">
+                     <span class="material-symbols-rounded">list</span>
+                     View All Supported Devices
+                 </button></a>
+             </div>
+         </div>
+     </section>
