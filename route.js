@@ -75,18 +75,18 @@ async function navigate(event, path) {
 const routeActions = {
     "#": async () => {
         // show latest 5 devices on main page (already handled in updateContent, keep for safety)
-        if (typeof loadDevices === 'function') await loadDevices(5);
+        if (typeof loadDevices === 'function') await loadDevices(3);
     },
     "#home": async () => {
-        if (typeof loadDevices === 'function') await loadDevices(5);
+        if (typeof loadDevices === 'function') await loadDevices(3);
     },
     "#features": async () => {
         // ensure devices loaded for home too (if desired) then scroll to #features
-        if (typeof loadDevices === 'function') await loadDevices(5);
+        if (typeof loadDevices === 'function') await loadDevices(3);
         scrollToSection('features');
     },
     "#screenshots": async () => {
-        if (typeof loadDevices === 'function') await loadDevices(5);
+        if (typeof loadDevices === 'function') await loadDevices(3);
         scrollToSection('screenshots');
     },
     "#devices": async () => {
@@ -164,6 +164,8 @@ async function updateContent() {
                     routeActions[routeKey]().catch(err => console.error('routeAction error', err));
                 }
 
+                // Ensure footer present
+                if (typeof buildSiteFooter === 'function') buildSiteFooter();
                 return;
             }
         }
@@ -183,9 +185,11 @@ async function updateContent() {
 
         const notFoundResponse = await fetchContent('pages/404.html');
         appDiv.innerHTML = await notFoundResponse.text();
+        if (typeof buildSiteFooter === 'function') buildSiteFooter();
     } catch (error) {
         console.error('Error loading page:', error);
         appDiv.innerHTML = '<div class="container"><h1>Error</h1><p>Failed to load content. Please ensure you are running the site through a web server.</p></div>';
+        if (typeof buildSiteFooter === 'function') buildSiteFooter();
     }
 }
 
@@ -403,7 +407,7 @@ async function loadDevices(limit = 0) {
             const moreWrap = document.createElement('div');
             moreWrap.className = 'center-align';
             moreWrap.innerHTML = `
-                <button onclick="navigateTo('/devices'); return false;" class="round">
+                <button onclick="navigateTo('/devices'); return false;" class="round large-margin">
                     <i>devices</i>
                     <span>View all devices</span>
                 </button>
@@ -1043,4 +1047,48 @@ function buildOemFilterChips() {
     oems.forEach(o => nav.appendChild(makeButton(o, o)));
 
     rebuildRoundClasses();
+}
+
+// BeerCSS footer builder
+function buildSiteFooter() {
+    if (document.getElementById('site-footer')) return; // already added
+    const footer = document.createElement('footer');
+    footer.id = 'site-footer';
+    footer.className = 'medium-padding';
+    footer.innerHTML = `
+        <div class="container">
+            <div class="grid small-space">
+                <div class="s12 m6 l4">
+                    <h5 class="no-margin">AlphaDroid ROM</h5>
+                    <p class="small-text">The next-generation Android experience with Material You design, performance optimizations and extensive customization.</p>
+                    <nav class="chips" style="gap:6px;">
+                        <a class="chip small" target="_blank" href="https://t.me/alphadroid_chat"><i>forum</i><span>Chat</span></a>
+                        <a class="chip small" target="_blank" href="https://t.me/alphadroid_releases"><i>cloud_download</i><span>Releases</span></a>
+                        <a class="chip small" target="_blank" href="https://github.com/alphadroid-project"><i>code</i><span>GitHub</span></a>
+                    </nav>
+                </div>
+                <div class="s12 m6 l4">
+                    <h6 class="small-margin">Resources</h6>
+                    <ul class="list no-border no-padding">
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">Installation Guide</a></li>
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">FAQ</a></li>
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">Bug Tracker</a></li>
+                    </ul>
+                </div>
+                <div class="s12 m6 l4">
+                    <h6 class="small-margin">Community</h6>
+                    <ul class="list no-border no-padding">
+                        <li><a target="_blank" href="https://t.me/alphadroid_chat">Telegram Group</a></li>
+                        <li><a target="_blank" href="https://t.me/alphadroid_releases">Releases Channel</a></li>
+                        <li><a target="_blank" href="https://github.com/alphadroid-project">GitHub Org</a></li>
+                        <li><a target="_blank" href="https://sourceforge.net/projects/alphadroid-project/">SourceForge</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider small-margin"></div>
+            <div class="row small-text center-align" style="opacity:.75; max-width:70vw;">
+                <p style="width: 100%;">&copy; ${new Date().getFullYear()} AlphaDroid Project. Open-source project not affiliated with Google or Android. All trademarks belong to their owners. Site by <a class="link" href="https://t.me/Pacuka" target="_blank" rel="noopener">Pacuka</a>, redesigned by <a class="link" href="https://github.com/naokoshoto" target="_blank" rel="noopener">Naoko Shoto</a>.</p>
+            </div>
+        </div>`;
+    document.body.appendChild(footer);
 }
