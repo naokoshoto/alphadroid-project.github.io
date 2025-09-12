@@ -9,14 +9,22 @@ const routes = {
     "#contact": "pages/contact.html"
 };
 
+// Small in-memory cache for fetched HTML fragments
+window.__pageCache = window.__pageCache || new Map();
+
 async function fetchContent(url) {
+    // Serve from cache if available
+    if (window.__pageCache.has(url)) {
+        const cached = window.__pageCache.get(url);
+        return { ok: true, text: async () => cached };
+    }
+
     // Use preloaded page fragment if available
     try {
         if (window.__preloadedPages && window.__preloadedPages[url]) {
-            return {
-                ok: true,
-                text: async () => window.__preloadedPages[url]
-            };
+            const html = window.__preloadedPages[url];
+            window.__pageCache.set(url, html);
+            return { ok: true, text: async () => html };
         }
     } catch (e) {
         // fall back to network
@@ -24,7 +32,7 @@ async function fetchContent(url) {
 
     // Handle both development and production environments
     if (window.location.protocol === 'file:') {
-        // Development mode - return mock content
+        // Development mode - return mock content (do not cache)
         return {
             ok: true,
             text: async () => `<div class="container">
@@ -34,14 +42,15 @@ async function fetchContent(url) {
             </div>`
         };
     }
-    return fetch(url);
-}
 
-function getBasePath() {
-    // Get the base path from the current URL
-    const path = window.location.pathname;
-    const projectRoot = '/';
-    return path.includes(projectRoot) ? projectRoot : '/';
+    // Network fetch with no-cache header; cache successful response body
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (res.ok) {
+        const html = await res.text();
+        window.__pageCache.set(url, html);
+        return { ok: true, text: async () => html };
+    }
+    return res;
 }
 
 function navigateTo(path) {
@@ -72,30 +81,25 @@ async function navigate(event, path) {
     navigateTo(path);
 }
 
-const routeActions = {
-    "#": async () => {
-        // show latest 5 devices on main page (already handled in updateContent, keep for safety)
-        if (typeof loadDevices === 'function') await loadDevices(3);
-    },
-    "#home": async () => {
-        if (typeof loadDevices === 'function') await loadDevices(3);
-    },
-    "#features": async () => {
-        // ensure devices loaded for home too (if desired) then scroll to #features
-        if (typeof loadDevices === 'function') await loadDevices(3);
-        scrollToSection('features');
-    },
-    "#screenshots": async () => {
-        if (typeof loadDevices === 'function') await loadDevices(3);
-        scrollToSection('screenshots');
-    },
-    "#devices": async () => {
-        // Render full list into the devices fragment injected into #app
-        if (typeof loadDevices === 'function') await loadDevices(0);
-    },
-    "#download": async () => {
-        if (typeof loadDevices === 'function') await loadDevices(0);
+// Helper to generate route actions with optional scroll target
+const makeLoadAction = (limit, scrollId) => async () => {
+    // Skip redundant loads if content already exists
+    if (typeof loadDevices === 'function') {
+        const container = document.querySelector('.devices-container');
+        const hasCards = container && container.querySelector('article[data-codename]');
+        if (!hasCards) await loadDevices(limit);
     }
+    if (scrollId) scrollToSection(scrollId);
+};
+
+// Simplified route actions using the helper
+const routeActions = {
+    "#": makeLoadAction(5),
+    "#home": makeLoadAction(5),
+    "#features": makeLoadAction(5, 'features'),
+    "#screenshots": makeLoadAction(5, 'screenshots'),
+    "#devices": makeLoadAction(0),
+    "#download": makeLoadAction(0)
 };
 
 // helper: smooth scroll to element by id if exists
@@ -115,35 +119,16 @@ function scrollToSection(id) {
     }, 120);
 }
 
-// New helper: attempt to resolve the route key for the current pathname.
-// This allows supporting deployment under a repo subpath (e.g. /repo/devices).
-function resolveRouteKey(pathname) {
-    if (routes[pathname]) return pathname;
-    // exact mapping for index-like names
-    if (pathname === '' || pathname === '/') return '/';
-    // try match by suffix: e.g. /repo/devices => matches /devices
-    for (const key of Object.keys(routes)) {
-        if (key === '/') continue;
-        if (pathname === key || pathname.endsWith(key)) return key;
-    }
-    // fallback to index
-    if (pathname.endsWith('/index.html')) return '/';
-    return null;
-}
-
 async function updateContent() {
     const hash = window.location.hash || '#';
     const appDiv = document.getElementById("app");
-    console.log('Current hash:', hash); // Debug logging
-    
     // Start transition
     appDiv.classList.remove('fade-in');
     appDiv.classList.add('fade-out');
     await new Promise(resolve => setTimeout(resolve, 400)); // Wait for fade out
-    
+
     try {
         const routeKey = hash;
-        console.log('Route key:', routeKey, 'Route found:', routes[routeKey]); // Debug route resolution
         if (routeKey && routes[routeKey]) {
             const response = await fetchContent(routes[routeKey]);
             if (response.ok) {
@@ -151,13 +136,7 @@ async function updateContent() {
                 appDiv.classList.remove('fade-out');
                 appDiv.classList.add('fade-in');
 
-                // If the injected page is the home page (or mapped to it), populate devices dynamically
-                if (routes[routeKey] && routes[routeKey].startsWith('pages/home.html')) {
-                    // Load latest 5 devices for the homepage
-                    loadDevices(5).catch(err => {
-                        console.error('Error loading devices:', err);
-                    });
-                }
+                // Removed duplicate home load; rely on routeActions only
 
                 // Run any route-specific post-render actions (scrolling, extra loads)
                 if (routeActions[routeKey]) {
@@ -172,7 +151,7 @@ async function updateContent() {
 
         // allow serving top-level HTML files directly (e.g. visiting /devices.html)
         // try to fetch the path as-is (strip leading slash)
-        const tryPath = path.replace(/^\//, '');
+        const tryPath = (window.location.pathname || '').replace(/^\/+/, '');
         try {
             const directResp = await fetchContent(tryPath);
             if (directResp.ok) {
@@ -276,7 +255,7 @@ async function loadDevices(limit = 0) {
     function renderDevices(devices) {
         container.innerHTML = '';
         const grid = document.createElement('div');
-        grid.className = 'grid responsive medium-space'; // Add responsive grid with medium spacing
+        grid.className = 'grid responsive medium-space';
         container.appendChild(grid);
 
         // Keep raw list for search/filter
@@ -326,6 +305,9 @@ async function loadDevices(limit = 0) {
             return lum > 186 ? 'black' : 'white';
         }
 
+        // Batch DOM insertion to reduce reflows
+        const frag = document.createDocumentFragment();
+
         devices.forEach(res => {
             const d = normalizeEntry(res);
             const codename = (d.codename || d.device || d.id || d.rawName || '').toString();
@@ -369,17 +351,19 @@ async function loadDevices(limit = 0) {
             const imageUrl = d.image || `images/devices/${codename}.webp`;
 
             const card = document.createElement('article');
-            card.className = 's12 m6 l4 padding center-align'; // Responsive columns: 1 on small, 2 on medium, 3 on large screens
+            card.className = 's12 m6 l4 padding center-align';
             card.setAttribute('data-codename', codename.toLowerCase());
             card.setAttribute('data-oem', (oemVal || '').toLowerCase());
             card.setAttribute('data-model', (fullname || '').toLowerCase());
             card.innerHTML = `
                 <div class="small-padding relative" style="aspect-ratio: 3 / 4; width: 100%;">
                     <div style="display:flex; justify-content:center; align-items:flex-start; padding-top:8px;">
-                        <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(fullname)}" style="width:72px;height:72px;object-fit:contain;" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'extra-large',textContent:'smartphone'}));">
+                        <img loading="lazy" src="${escapeAttr(imageUrl)}" alt="${escapeAttr(fullname)}" style="width:72px;height:72px;object-fit:contain;" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'extra-large',textContent:'smartphone'}));">
                     </div>
                     <div class="absolute bottom left" style="width: 100%; text-align:left; display:flex; flex-direction:column; align-items:flex-start;">
-                        <h5 class="small-margin" style="margin-left:4px;">${escapeHtml(fullname)}</h5>
+                        <h5 class="device-title" title="${escapeAttr(fullname)}" style="margin:0.75rem 0;">
+                            <span class="marquee-inner">${escapeHtml(fullname)}</span>
+                        </h5>
                         <button class="chip fill round" style="margin-left:4px;">
                             <i>today</i>
                             <span>${escapeHtml(latestDisplay)}</span>
@@ -400,8 +384,13 @@ async function loadDevices(limit = 0) {
                     </div>
                 </div>
             `;
-            grid.appendChild(card);
+            frag.appendChild(card);
         });
+
+        grid.appendChild(frag);
+
+        // Single marquee initializer (deduplicated)
+        initMarquee(grid);
 
         if (limit && limit > 0) {
             const moreWrap = document.createElement('div');
@@ -556,6 +545,160 @@ async function loadDevices(limit = 0) {
     } catch (err) {
         console.error('loadDevices error', err);
         container.innerHTML = '<div class="center-align error-text"><h5>Failed to load devices</h5><p>Check console for details</p></div>';
+    }
+}
+
+// Inject marquee styles once
+function ensureMarqueeStyles() {
+    if (document.getElementById('marquee-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'marquee-styles';
+    style.textContent = `
+        :root { --marquee-gap: 24px; --marquee-fade: 16px; }
+        @keyframes scroll-marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(var(--marquee-shift, -50%)); }
+        }
+        /* Constrain title strictly to card width with symmetric padding */
+        .device-title {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 0 4px; /* symmetric left/right */
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        /* Apply horizontal fade only when marquee is active */
+        .device-title.has-marquee {
+            position: relative;
+            -webkit-mask-image: linear-gradient(
+                to right,
+                transparent,
+                #000 var(--marquee-fade),
+                #000 calc(100% - var(--marquee-fade)),
+                transparent
+            );
+            mask-image: linear-gradient(
+                to right,
+                transparent,
+                #000 var(--marquee-fade),
+                #000 calc(100% - var(--marquee-fade)),
+                transparent
+            );
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+        }
+        .device-title .marquee-inner {
+            display: inline-flex; /* track with two copies for seamless loop */
+            will-change: transform;
+            gap: var(--marquee-gap); /* JS reads this value */
+        }
+        .device-title .marquee-copy {
+            flex: 0 0 auto; /* each copy keeps natural width */
+        }
+        /* Pause when card hovered (CSS-only, efficient) */
+        article:hover .marquee-inner { animation-play-state: paused !important; }
+        /* Pause when IO marks it (no inline style writes) */
+        .marquee-inner.is-paused { animation-play-state: paused; }
+    `;
+    document.head.appendChild(style);
+}
+
+// Efficient marquee initializer
+function initMarquee(grid) {
+    if (!grid) return;
+    ensureMarqueeStyles();
+
+    const titles = grid.querySelectorAll('.device-title');
+    titles.forEach(t => {
+        const inner = t.querySelector('.marquee-inner');
+        if (!inner) return;
+
+        // Preserve original text once
+        const original = t.dataset.title || inner.textContent || '';
+        t.dataset.title = original;
+
+        // Reset to a simple text node for measurement
+        inner.style.removeProperty('animation');
+        inner.style.removeProperty('--marquee-shift');
+        inner.textContent = original;
+
+        const containerWidth = Math.round(t.clientWidth || 0);
+        const textWidth = Math.ceil(inner.scrollWidth || 0);
+        const prevCW = Number(t.dataset.cw || 0);
+        const prevTW = Number(t.dataset.tw || 0);
+
+        // Not overflowing -> no marquee and no fade
+        if (textWidth <= containerWidth + 1) {
+            t.classList.remove('has-marquee');
+            t.dataset.cw = containerWidth;
+            t.dataset.tw = textWidth;
+            return;
+        }
+
+        // Rebuild only if dimensions changed or not initialized
+        if (!(t.dataset.marqueeInit === '1' && prevCW === containerWidth && prevTW === textWidth)) {
+            inner.innerHTML = '';
+            const c1 = document.createElement('span');
+            c1.className = 'marquee-copy';
+            c1.textContent = original;
+            const c2 = document.createElement('span');
+            c2.className = 'marquee-copy';
+            c2.textContent = original;
+            inner.append(c1, c2);
+
+            const cs = getComputedStyle(inner);
+            const gap = parseFloat(cs.gap) || 24;
+            const copyWidth = Math.ceil(c1.getBoundingClientRect().width || 0);
+            const shift = copyWidth + gap;
+
+            inner.style.setProperty('--marquee-shift', `-${shift}px`);
+            const speed = 40; // px/s
+            const duration = Math.max(6, shift / speed);
+            inner.style.animation = `scroll-marquee ${duration}s linear infinite 800ms`;
+
+            t.dataset.cw = containerWidth;
+            t.dataset.tw = textWidth;
+            t.dataset.marqueeInit = '1';
+        }
+
+        // Ensure fade is active when marquee is active
+        t.classList.add('has-marquee');
+
+        // Visibility-based pause/resume
+        if (!window.__marqueeIO) {
+            window.__marqueeIO = new IntersectionObserver(entries => {
+                entries.forEach(({ isIntersecting, target }) => {
+                    const inn = target.querySelector('.marquee-inner');
+                    if (!inn) return;
+                    // Toggle class instead of inline style so hover CSS can pause efficiently
+                    inn.classList.toggle('is-paused', !isIntersecting);
+                });
+            }, { root: null, threshold: 0 });
+        }
+        window.__marqueeIO.observe(t);
+    });
+
+    // Removed JS hover delegation (CSS handles hover pause)
+    // Removed global resize handler remains as-is
+    if (!window.__marqueeResizeBound) {
+        window.__marqueeResizeBound = true;
+        let raf = 0;
+        window.addEventListener('resize', () => {
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => {
+                document.querySelectorAll('.device-title').forEach(t => {
+                    t.dataset.marqueeInit = '';
+                    t.classList.remove('has-marquee'); // clear fade until recalculated
+                    const inn = t.querySelector('.marquee-inner');
+                    if (inn) inn.style.animation = 'none';
+                });
+                document.querySelectorAll('.grid.responsive').forEach(g => initMarquee(g));
+            });
+        }, { passive: true });
     }
 }
 
@@ -919,6 +1062,10 @@ function setupDeviceSearch() {
     if (suggestMenu) suggestMenu.style.display = 'none';
     if (!input) return;
 
+    // Prevent multiple bindings on re-render
+    if (input.dataset.bound === '1') return;
+    input.dataset.bound = '1';
+
     const container = document.querySelector('.devices-container');
     if (!container) return;
 
@@ -957,23 +1104,22 @@ function setupDeviceSearch() {
     let debounceTimer = null;
     function schedule() {
         if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => runFilter(input.value), 1000); // 1s cooldown
+        debounceTimer = setTimeout(() => runFilter(input.value), 1000);
     }
 
     window.applyDeviceSearch = () => runFilter(input.value || '');
-    input.addEventListener('input', schedule);
+    input.addEventListener('input', schedule, { passive: true });
     input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { // allow manual immediate search on Enter
+        if (e.key === 'Enter') {
             if (debounceTimer) clearTimeout(debounceTimer);
             runFilter(input.value);
         } else if (e.key === 'Escape') {
-            input.value='';
+            input.value = '';
             if (debounceTimer) clearTimeout(debounceTimer);
             runFilter('');
         }
     });
 
-    // expose for external trigger (OEM pills)
     window.__runDeviceSearchFilter = () => runFilter(input.value || '');
 }
 
